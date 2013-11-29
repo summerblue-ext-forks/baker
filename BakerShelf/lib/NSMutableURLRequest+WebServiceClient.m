@@ -41,7 +41,7 @@
 
     NSString *name = [keys nextObject];
     while (nil != name) {
-        NSString *encodedValue = [((NSString *) CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef) [parameters objectForKey: name], NULL, CFSTR("=/:"), kCFStringEncodingUTF8)) autorelease];
+        NSString *encodedValue = [((NSString *) CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef) parameters[name], NULL, CFSTR("=/:"), kCFStringEncodingUTF8)) autorelease];
 
         [formPostParams appendString: name];
         [formPostParams appendString: @"="];

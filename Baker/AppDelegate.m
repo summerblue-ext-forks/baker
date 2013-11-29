@@ -84,10 +84,10 @@
     #endif
     
     // Check if the app is runnig in response to a notification
-    NSDictionary *payload = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
+    NSDictionary *payload = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
     if (payload) {
-        NSDictionary *aps = [payload objectForKey:@"aps"];
-        if (aps && [aps objectForKey:@"content-available"]) {
+        NSDictionary *aps = payload[@"aps"];
+        if (aps && aps[@"content-available"]) {
 
             __block UIBackgroundTaskIdentifier backgroundTask = [application beginBackgroundTaskWithExpirationHandler:^{
                 [application endBackgroundTask:backgroundTask];
@@ -100,7 +100,7 @@
             sema = dispatch_semaphore_create(0);
 
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-                [self applicationWillHandleNewsstandNotificationOfContent:[payload objectForKey:@"content-name"]];
+                [self applicationWillHandleNewsstandNotificationOfContent:payload[@"content-name"]];
                 [application endBackgroundTask:backgroundTask];
                 backgroundTask = UIBackgroundTaskInvalid;
                 dispatch_semaphore_signal(sema);
@@ -133,7 +133,7 @@
         [navigationBar setTintColor:[UIColor colorWithHexString:ISSUES_ACTION_BUTTON_BACKGROUND_COLOR]];
         [navigationBar setBarTintColor:[UIColor colorWithHexString:@"ffffff"]];
         [navigationBar setBackgroundImage:[UIImage imageNamed:@"navigation-bar-bg"] forBarMetrics:UIBarMetricsDefault];
-        navigationBar.titleTextAttributes = [NSDictionary dictionaryWithObject:[UIColor colorWithHexString:@"000000"] forKey:UITextAttributeTextColor];
+        navigationBar.titleTextAttributes = @{UITextAttributeTextColor: [UIColor colorWithHexString:@"000000"]};
     } else {
         // Background is 44px: in iOS6 and below, a higher background image would make the navigation bar
         // appear higher than it should be.
@@ -180,18 +180,18 @@
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
     #ifdef BAKER_NEWSSTAND
-    NSDictionary *aps = [userInfo objectForKey:@"aps"];
-    if (aps && [aps objectForKey:@"content-available"]) {
-        [self applicationWillHandleNewsstandNotificationOfContent:[userInfo objectForKey:@"content-name"]];
+    NSDictionary *aps = userInfo[@"aps"];
+    if (aps && aps[@"content-available"]) {
+        [self applicationWillHandleNewsstandNotificationOfContent:userInfo[@"content-name"]];
     }
     #endif
 }
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))handler
 {
     #ifdef BAKER_NEWSSTAND
-    NSDictionary *aps = [userInfo objectForKey:@"aps"];
-    if (aps && [aps objectForKey:@"content-available"]) {
-        [self applicationWillHandleNewsstandNotificationOfContent:[userInfo objectForKey:@"content-name"]];
+    NSDictionary *aps = userInfo[@"aps"];
+    if (aps && aps[@"content-available"]) {
+        [self applicationWillHandleNewsstandNotificationOfContent:userInfo[@"content-name"]];
     }
     #endif
 }
@@ -211,7 +211,7 @@
                 }
             }
         } else {
-            targetIssue = [issuesManager.issues objectAtIndex:0];
+            targetIssue = (issuesManager.issues)[0];
         }
 
         [purchasesManager retrievePurchasesFor:[issuesManager productIDs] withCallback:^(NSDictionary *_purchases) {

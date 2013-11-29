@@ -45,7 +45,7 @@
     if (self) {
         self.issues = nil;
 
-        NSString *cachePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+        NSString *cachePath = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES)[0];
         self.shelfManifestPath = [cachePath stringByAppendingPathComponent:@"shelf.json"];
     }
 
@@ -137,8 +137,8 @@
     NSMutableArray *discardedIssues = [NSMutableArray arrayWithArray:[nkLib issues]];
 
     for (NSDictionary *issue in issuesList) {
-        NSDate *date = [Utils dateWithFormattedString:[issue objectForKey:@"date"]];
-        NSString *name = [issue objectForKey:@"name"];
+        NSDate *date = [Utils dateWithFormattedString:issue[@"date"]];
+        NSString *name = issue[@"name"];
 
         NKIssue *nkIssue = [nkLib issueWithName:name];
         if(!nkIssue) {
@@ -176,7 +176,7 @@
 }
 
 - (BakerIssue *)latestIssue {
-    return [issues objectAtIndex:0];
+    return issues[0];
 }
 #endif
 

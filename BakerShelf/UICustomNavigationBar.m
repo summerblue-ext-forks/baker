@@ -62,7 +62,7 @@
     if ([UINavigationBar instancesRespondToSelector:@selector(setBackgroundImage:forBarMetrics:)]) {
         [super setBackgroundImage:backgroundImage forBarMetrics:barMetrics];
     } else {
-        [[self backgroundImages] setObject:backgroundImage forKey:[NSNumber numberWithInt:barMetrics]];
+        [self backgroundImages][[NSNumber numberWithInt:barMetrics]] = backgroundImage;
         [self updateBackgroundImage];
     }
 }
@@ -73,9 +73,9 @@
         metrics = UIBarMetricsDefault;
     }
 
-    UIImage *image = [[self backgroundImages] objectForKey:[NSNumber numberWithInt:metrics]];
+    UIImage *image = [self backgroundImages][[NSNumber numberWithInt:metrics]];
     if (!image && metrics != UIBarMetricsDefault) {
-        image = [[self backgroundImages] objectForKey:[NSNumber numberWithInt:UIBarMetricsDefault]];
+        image = [self backgroundImages][@(UIBarMetricsDefault)];
     }
 
     if (image) {

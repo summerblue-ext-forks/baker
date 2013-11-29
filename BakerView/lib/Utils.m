@@ -112,7 +112,7 @@
 }
 
 + (void)webView:(UIWebView *)webView dispatchHTMLEvent:(NSString *)event {
-    [Utils webView:webView dispatchHTMLEvent:event withParams:[NSDictionary dictionary]];
+    [Utils webView:webView dispatchHTMLEvent:event withParams:@{}];
 }
 + (void)webView:(UIWebView *)webView dispatchHTMLEvent:(NSString *)event withParams:(NSDictionary *)params {
     __block NSMutableString *jsDispatchEvent = [NSMutableString stringWithFormat:
