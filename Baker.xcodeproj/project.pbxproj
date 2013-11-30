@@ -51,11 +51,11 @@
 		ABD7D45F1616FC5B008B13B5 /* BakerIssue.m in Sources */ = {isa = PBXBuildFile; fileRef = ABD7D45E1616FC5B008B13B5 /* BakerIssue.m */; };
 		ABDC05AF16A4C42A00F6B63D /* JSONStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = ABDC05AE16A4C42A00F6B63D /* JSONStatus.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		ABDC05B216A4CB3900F6B63D /* ShelfStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = ABDC05B116A4CB3900F6B63D /* ShelfStatus.m */; };
-		ABF23B1D1708418E003AA3B0 /* BakerAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = ABF23B1C1708418E003AA3B0 /* BakerAPI.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		ABF23B1D1708418E003AA3B0 /* BakerAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = ABF23B1C1708418E003AA3B0 /* BakerAPI.m */; };
 		BF0785EB1794AF4000EB988E /* info in Resources */ = {isa = PBXBuildFile; fileRef = BF0785EA1794AF4000EB988E /* info */; };
 		BF78D1B0180C8F070093DFBC /* BakerAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BF78D1AF180C8F070093DFBC /* BakerAssets.xcassets */; };
 		BFAB78D317B2A67E00E91ADE /* BakerAnalyticsEvents.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAB78D217B2A67E00E91ADE /* BakerAnalyticsEvents.m */; };
-		F38A180318496D4C00B38CB4 /* LogHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = F38A180218496D4C00B38CB4 /* LogHelper.m */; };
+		F38A180318496D4C00B38CB4 /* LogHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = F38A180218496D4C00B38CB4 /* LogHelper.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -553,6 +553,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Baker/Baker-Prefix.pch";
 				INFOPLIST_FILE = "Baker/Baker-Info.plist";
@@ -568,6 +569,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Baker/Baker-Prefix.pch";
 				INFOPLIST_FILE = "Baker/Baker-Info.plist";

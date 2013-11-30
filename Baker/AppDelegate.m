@@ -40,17 +40,8 @@
     // 设置 User Agent , 为啥要在这里设置, 必须是在 App 开始的时候设置才有用 见这里: http://stackoverflow.com/a/8666438/689832
     NSDictionary *userAgent = [[NSDictionary alloc] initWithObjectsAndKeys:@"Mozilla/5.0 (compatible; BakerFramework) AppleWebKit/533.00+ (KHTML, like Gecko) Mobile", @"UserAgent", nil];
     [[NSUserDefaults standardUserDefaults] registerDefaults:userAgent];
-    [userAgent release];
 }
 
-- (void)dealloc
-{
-    [window release];
-    [rootViewController release];
-    [rootNavigationController release];
-
-    [super dealloc];
-}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -91,13 +82,12 @@
             });
 
             dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-            dispatch_release(sema);
         }
     }
 
-    self.rootViewController = [[[ShelfViewController alloc] init] autorelease];
+    self.rootViewController = [[ShelfViewController alloc] init];
 
-    self.rootNavigationController = [[[UICustomNavigationController alloc] initWithRootViewController:self.rootViewController] autorelease];
+    self.rootNavigationController = [[UICustomNavigationController alloc] initWithRootViewController:self.rootViewController];
     UICustomNavigationBar *navigationBar = (UICustomNavigationBar *)self.rootNavigationController.navigationBar;
 
     // iOS7 适配
@@ -117,7 +107,7 @@
         [navigationBar setTintColor:[UIColor colorWithHexString:@"333333"]]; // black will not trigger a pushed status
     }
 
-    self.window = [[[InterceptorWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    self.window = [[InterceptorWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.backgroundColor = [UIColor whiteColor];
 
     self.window.rootViewController = self.rootNavigationController;

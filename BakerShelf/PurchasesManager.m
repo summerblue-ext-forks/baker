@@ -47,7 +47,7 @@
     self = [super init];
 
     if (self) {
-        self.products = [[[NSMutableDictionary alloc] init] autorelease];
+        self.products = [[NSMutableDictionary alloc] init];
         self.subscribed = NO;
 
         _purchases = [[NSMutableDictionary alloc] init];
@@ -125,7 +125,6 @@
     NSDictionary *userInfo = @{@"ids": ids};
     [[NSNotificationCenter defaultCenter] postNotificationName:@"notification_products_retrieved" object:self userInfo:userInfo];
 
-    [request release];
 }
 
 - (void)logProducts:(NSArray *)skProducts {
@@ -143,7 +142,6 @@
         [[NSNotificationCenter defaultCenter] postNotificationName:@"notification_products_request_failed" object:self userInfo:userInfo];
     }
 
-    [request release];
 }
 
 - (NSString *)priceFor:(NSString *)productID {
@@ -399,13 +397,6 @@
 
 #pragma mark - Memory management
 
--(void)dealloc {
-    [products release];
-    [_numberFormatter release];
-    [_purchases release];
-
-    [super dealloc];
-}
 
 @end
 #endif

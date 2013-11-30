@@ -17,7 +17,7 @@
 void BetterNSLog (NSString *format, ...) {
     va_list argList;
     va_start (argList, format);
-    NSString *message = [[[NSString alloc] initWithFormat: format arguments: argList] autorelease]; // remove autorelease for ARC
+    NSString *message = [[NSString alloc] initWithFormat: format arguments: argList]; // remove autorelease for ARC
     fprintf (stderr, "%s\n---------------------------------//\n", [message UTF8String]);
     va_end  (argList);
 }
