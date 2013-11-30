@@ -32,6 +32,8 @@
 #import "BakerBook.h"
 #import "NSString+Extensions.h"
 
+#import "Constants.h"
+
 @implementation BakerBook
 
 #pragma mark - HPub parameters synthesis
@@ -108,7 +110,7 @@
     NSError* error = nil;
     NSData* bookJSON = [NSData dataWithContentsOfFile:bookJSONPath options:0 error:&error];
     if (error) {
-        NSLog(@"[BakerBook] ERROR reading 'book.json': %@", error.localizedDescription);
+        LogBaker(@"[BakerBook] ERROR reading 'book.json': %@", error.localizedDescription);
         return nil;
     }
 
@@ -116,7 +118,7 @@
                                                              options:0
                                                                error:&error];
     if (error) {
-        NSLog(@"[BakerBook] ERROR parsing 'book.json': %@", error.localizedDescription);
+        LogBaker(@"[BakerBook] ERROR parsing 'book.json': %@", error.localizedDescription);
         return nil;
     }
 
@@ -129,7 +131,7 @@
         NSString *baseID = [self.title stringByAppendingFormat:@" %@", [self.url stringSHAEncoded]];
         self.ID = [self sanitizeForPath:baseID];
 
-        NSLog(@"[BakerBook] 'book.json' parsed successfully. Book '%@' created with id '%@'.", self.title, self.ID);
+        LogBaker(@"[BakerBook] 'book.json' parsed successfully. Book '%@' created with id '%@'.", self.title, self.ID);
         return self;
     }
 
@@ -259,13 +261,13 @@
 {
     for (NSString *param in requirements) {
         if (bookData[param] == nil) {
-            NSLog(@"[BakerBook] ERROR: param '%@' is missing. Add it to 'book.json'.", param);
+            LogBaker(@"[BakerBook] ERROR: param '%@' is missing. Add it to 'book.json'.", param);
             return NO;
         }
     }
 
     for (NSString *param in bookData) {
-        //NSLog(@"[BakerBook] Validating 'book.json' param: '%@'.", param);
+        //LogBaker(@"[BakerBook] Validating 'book.json' param: '%@'.", param);
 
         id obj = bookData[param];
         if ([obj isKindOfClass:[NSArray class]] && ![self validateArray:(NSArray *)obj forParam:param]) {
@@ -287,26 +289,26 @@
 
 
     if (![self matchParam:param againstParamsArray:shouldBeArray]) {
-        NSLog(@"[BakerBook] ERROR: param '%@' should not be an Array. Check it in 'book.json'.", param);
+        LogBaker(@"[BakerBook] ERROR: param '%@' should not be an Array. Check it in 'book.json'.", param);
         return NO;
     }
 
     if (([param isEqualToString:@"author"] || [param isEqualToString:@"contents"]) && [array count] == 0) {
-        NSLog(@"[BakerBook] ERROR: param '%@' is empty. Fill it in 'book.json'.", param);
+        LogBaker(@"[BakerBook] ERROR: param '%@' is empty. Fill it in 'book.json'.", param);
         return NO;
     }
 
     for (id obj in array) {
         if ([param isEqualToString:@"author"] && (![obj isKindOfClass:[NSString class]] || [(NSString *)obj isEqualToString:@""])) {
-            NSLog(@"[BakerBook] ERROR: param 'author' is empty. Fill it in 'book.json'.");
+            LogBaker(@"[BakerBook] ERROR: param 'author' is empty. Fill it in 'book.json'.");
             return NO;
         } else if ([param isEqualToString:@"contents"]) {
             if ([obj isKindOfClass:[NSDictionary class]] && ![self validateBookJSON:(NSDictionary *)obj withRequirements:@[@"url"]]) {
-                NSLog(@"[BakerBook] ERROR: param 'contents' is not validating. Check it in 'book.json'.");
+                LogBaker(@"[BakerBook] ERROR: param 'contents' is not validating. Check it in 'book.json'.");
                 return NO;
             }
         } else if (![obj isKindOfClass:[NSString class]]) {
-            NSLog(@"[BakerBook] ERROR: param '%@' type is wrong. Check it in 'book.json'.", param);
+            LogBaker(@"[BakerBook] ERROR: param '%@' type is wrong. Check it in 'book.json'.", param);
             return NO;
         }
     }
@@ -332,12 +334,12 @@
 
 
     if (![self matchParam:param againstParamsArray:shouldBeString]) {
-        NSLog(@"[BakerBook] ERROR: param '%@' should not be a String. Check it in 'book.json'.", param);
+        LogBaker(@"[BakerBook] ERROR: param '%@' should not be a String. Check it in 'book.json'.", param);
         return NO;
     }
 
     if (([param isEqualToString:@"title"] || [param isEqualToString:@"author"] || [param isEqualToString:@"url"]) && [string isEqualToString:@""]) {
-        NSLog(@"[BakerBook] ERROR: param '%@' is empty. Fill it in 'book.json'.", param);
+        LogBaker(@"[BakerBook] ERROR: param '%@' is empty. Fill it in 'book.json'.", param);
         return NO;
     }
 
@@ -346,8 +348,8 @@
     }
 
     if ([param isEqualToString:@"-baker-rendering"] && (![string isEqualToString:@"screenshots"] && ![string isEqualToString:@"three-cards"])) {
-        NSLog(@"Error: param \"-baker-rendering\" should be equal to \"screenshots\" or \"three-cards\" but it's not");
-        NSLog(@"[BakerBook] ERROR: param '-baker-rendering' must be equal to 'screenshots' or 'three-cards'. Check it in 'book.json'.");
+        LogBaker(@"Error: param \"-baker-rendering\" should be equal to \"screenshots\" or \"three-cards\" but it's not");
+        LogBaker(@"[BakerBook] ERROR: param '-baker-rendering' must be equal to 'screenshots' or 'three-cards'. Check it in 'book.json'.");
         return NO;
     }
 
@@ -370,7 +372,7 @@
 
 
     if (![self matchParam:param againstParamsArray:shouldBeNumber]) {
-        NSLog(@"[BakerBook] ERROR: param '%@' should not be a Number. Check it in 'book.json'.", param);
+        LogBaker(@"[BakerBook] ERROR: param '%@' should not be a Number. Check it in 'book.json'.", param);
         return NO;
     }
 

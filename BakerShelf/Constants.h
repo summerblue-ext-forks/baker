@@ -1,51 +1,28 @@
-//
-//  Constants.h
-//  Baker
-//
-//  ==========================================================================================
-//
-//  Copyright (c) 2010-2013, Davide Casali, Marco Colombo, Alessandro Morandi
-//  All rights reserved.
-//
-//  Redistribution and use in source and binary forms, with or without modification, are
-//  permitted provided that the following conditions are met:
-//
-//  Redistributions of source code must retain the above copyright notice, this list of
-//  conditions and the following disclaimer.
-//  Redistributions in binary form must reproduce the above copyright notice, this list of
-//  conditions and the following disclaimer in the documentation and/or other materials
-//  provided with the distribution.
-//  Neither the name of the Baker Framework nor the names of its contributors may be used to
-//  endorse or promote products derived from this software without specific prior written
-//  permission.
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-//  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-//  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-//  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-//  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+
+
+#import "LogHelper.h"
+
+/*
+ |--------------------------------------------------------------------------
+ | 通用常量定义
+ |--------------------------------------------------------------------------
+ |
+ */
 
 
 #ifndef Baker_Constants_h
 #define Baker_Constants_h
 
     // ----------------------------------------------------------------------------------------------------
-    // NEWSSTAND SUPPORT
-    // The following line, together with other settings, enables Newsstand mode.
-    // Remove this, remove the NewsstandKit.framework and the Newsstand entries in Baker-Info.plist to disable it.
+    // 开启 NEWSSTAND 模式, baker 代码中有大量的地方用了此常量, 用来区分是否使用 newsstand 模式
     // See: https://github.com/Simbul/baker/wiki/Newsstand-vs-Bundled-publications-support-in-Baker-4.0
     #define BAKER_NEWSSTAND
 
     #ifdef BAKER_NEWSSTAND
 
         // ----------------------------------------------------------------------------------------------------
-        // Mandatory - This constant defines where the JSON file containing all the publications is located.
-        // For more information on this file, see: https://github.com/Simbul/baker/wiki/Newsstand-shelf-JSON
-        // E.g. @"http://example.com/shelf.json"
+        // 定义 shelf.json 文件的地址, 也就是书架的地址, App 在每一次启动的是都会去加载此文件, wiki 见:
+        // https://github.com/Simbul/baker/wiki/Newsstand-shelf-JSON
         #define NEWSSTAND_MANIFEST_URL @"http://bakerframework.com/demo/shelf.json"
 
         // ----------------------------------------------------------------------------------------------------
@@ -90,3 +67,30 @@
     #define REQUEST_TIMEOUT 15
 
 #endif
+
+
+
+// ------------------------------------ 各种自定义的 DEBUG, 用来替换 LogBaker 的 ---------------------------------
+
+#ifdef DEBUG
+#   define DLog(fmt, ...) BetterNSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__);
+#else
+#   define DLog(...)
+#endif
+
+// Baker 的流程, 统一使用此 Micro 来 log
+#define BAKERDEBUG
+
+#ifdef BAKERDEBUG
+#   define LogBaker(fmt, ...) BetterNSLog((@"Baker >> " fmt @" >>>>> %s [第 %d 行] "), ##__VA_ARGS__, __PRETTY_FUNCTION__, __LINE__ );
+#else
+#   define LogBaker(...)
+#endif
+
+// 永远都显示的内容
+#define LogAllTheTime(fmt, ...) BetterNSLog((@" ------>>>>> %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__);
+
+
+
+
+

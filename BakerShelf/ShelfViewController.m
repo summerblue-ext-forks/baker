@@ -1,33 +1,12 @@
-//
-//  ShelfViewController.m
-//  Baker
-//
-//  ==========================================================================================
-//
-//  Copyright (c) 2010-2013, Davide Casali, Marco Colombo, Alessandro Morandi
-//  All rights reserved.
-//
-//  Redistribution and use in source and binary forms, with or without modification, are
-//  permitted provided that the following conditions are met:
-//
-//  Redistributions of source code must retain the above copyright notice, this list of
-//  conditions and the following disclaimer.
-//  Redistributions in binary form must reproduce the above copyright notice, this list of
-//  conditions and the following disclaimer in the documentation and/or other materials
-//  provided with the distribution.
-//  Neither the name of the Baker Framework nor the names of its contributors may be used to
-//  endorse or promote products derived from this software without specific prior written
-//  permission.
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-//  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-//  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-//  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-//  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+
+
+/*
+ |--------------------------------------------------------------------------
+ | App 的 rootViewController , 书架列表
+ |--------------------------------------------------------------------------
+ |
+ */
+
 
 #import "ShelfViewController.h"
 #import "UICustomNavigationBar.h"
@@ -57,34 +36,28 @@
 
 - (id)init {
     self = [super init];
-    if (self) {
-        #ifdef BAKER_NEWSSTAND
+    
+    if (self)
+    {
+        // 实例化内购买控制器, 注册消息通知
         purchasesManager = [PurchasesManager sharedInstance];
-        [self addPurchaseObserver:@selector(handleProductsRetrieved:)
-                             name:@"notification_products_retrieved"];
-        [self addPurchaseObserver:@selector(handleProductsRequestFailed:)
-                             name:@"notification_products_request_failed"];
-        [self addPurchaseObserver:@selector(handleSubscriptionPurchased:)
-                             name:@"notification_subscription_purchased"];
-        [self addPurchaseObserver:@selector(handleSubscriptionFailed:)
-                             name:@"notification_subscription_failed"];
-        [self addPurchaseObserver:@selector(handleSubscriptionRestored:)
-                             name:@"notification_subscription_restored"];
-        [self addPurchaseObserver:@selector(handleRestoreFailed:)
-                             name:@"notification_restore_failed"];
-        [self addPurchaseObserver:@selector(handleMultipleRestores:)
-                             name:@"notification_multiple_restores"];
-        [self addPurchaseObserver:@selector(handleRestoredIssueNotRecognised:)
-                             name:@"notification_restored_issue_not_recognised"];
+        [self addPurchaseObserver:@selector(handleProductsRetrieved:) name:@"notification_products_retrieved"];
+        [self addPurchaseObserver:@selector(handleProductsRequestFailed:) name:@"notification_products_request_failed"];
+        [self addPurchaseObserver:@selector(handleSubscriptionPurchased:) name:@"notification_subscription_purchased"];
+        [self addPurchaseObserver:@selector(handleSubscriptionFailed:) name:@"notification_subscription_failed"];
+        [self addPurchaseObserver:@selector(handleSubscriptionRestored:) name:@"notification_subscription_restored"];
+        [self addPurchaseObserver:@selector(handleRestoreFailed:) name:@"notification_restore_failed"];
+        [self addPurchaseObserver:@selector(handleMultipleRestores:) name:@"notification_multiple_restores"];
+        [self addPurchaseObserver:@selector(handleRestoredIssueNotRecognised:) name:@"notification_restored_issue_not_recognised"];
 
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(receiveBookProtocolNotification:)
                                                      name:@"notification_book_protocol"
                                                    object:nil];
-
+        
         [[SKPaymentQueue defaultQueue] addTransactionObserver:purchasesManager];
-        #endif
 
+        // 初始化 API 请求的接口
         api = [BakerAPI sharedInstance];
         issuesManager = [[IssuesManager sharedInstance] retain];
         notRecognisedTransactions = [[NSMutableArray alloc] init];
@@ -94,9 +67,7 @@
         self.supportedOrientation = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UISupportedInterfaceOrientations"];
         self.bookToBeProcessed = nil;
 
-        #ifdef BAKER_NEWSSTAND
         [self handleRefresh:nil];
-        #endif
     }
     return self;
 }
@@ -196,6 +167,8 @@
     [purchasesManager retrievePricesFor:subscriptions andEnableFailureNotifications:NO];
     #endif
 }
+
+
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
@@ -487,14 +460,14 @@
     if (actionSheet == subscriptionsActionSheet) {
         NSString *action = (self.subscriptionsActionSheetActions)[buttonIndex];
         if ([action isEqualToString:@"cancel"]) {
-            NSLog(@"Action sheet: cancel");
+            LogBaker(@"Action sheet: cancel");
             [self setSubscribeButtonEnabled:YES];
         } else if ([action isEqualToString:@"restore"]) {
             [self.blockingProgressView show];
             [purchasesManager restore];
-            NSLog(@"Action sheet: restore");
+            LogBaker(@"Action sheet: restore");
         } else {
-            NSLog(@"Action sheet: %@", action);
+            LogBaker(@"Action sheet: %@", action);
             [[NSNotificationCenter defaultCenter] postNotificationName:@"BakerSubscriptionPurchase" object:self]; // -> Baker Analytics Event
             [self setSubscribeButtonEnabled:NO];
             if (![purchasesManager purchase:action]){
@@ -589,7 +562,7 @@
     [purchasesManager markAsPurchased:transaction.payment.productIdentifier];
 
     if (![purchasesManager finishTransaction:transaction]) {
-        NSLog(@"Could not confirm purchase restore with remote server for %@", transaction.payment.productIdentifier);
+        LogBaker(@"Could not confirm purchase restore with remote server for %@", transaction.payment.productIdentifier);
     }
 }
 
@@ -650,7 +623,7 @@
         if (book) {
             [self pushViewControllerWithBook:book];
         } else {
-            NSLog(@"[ERROR] Book %@ could not be initialized", issue.ID);
+            LogBaker(@"[ERROR] Book %@ could not be initialized", issue.ID);
             issue.transientStatus = BakerIssueTransientStatusNone;
             // Let's refresh everything as it's easier. This is an edge case anyway ;)
             for (IssueViewController *controller in issueViewControllers) {

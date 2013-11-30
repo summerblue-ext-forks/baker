@@ -27,6 +27,7 @@
 
 #import "Reachability.h"
 
+#import "Constants.h"
 
 NSString *const kReachabilityChangedNotification = @"kReachabilityChangedNotification";
 
@@ -225,7 +226,7 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
     if (!SCNetworkReachabilitySetCallback(self.reachabilityRef, TMReachabilityCallback, &context))
     {
 #ifdef DEBUG
-        NSLog(@"SCNetworkReachabilitySetCallback() failed: %s", SCErrorString(SCError()));
+        LogBaker(@"SCNetworkReachabilitySetCallback() failed: %s", SCErrorString(SCError()));
 #endif
         
         //clear out the dispatch queue
@@ -246,7 +247,7 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
     if(!SCNetworkReachabilitySetDispatchQueue(self.reachabilityRef, self.reachabilitySerialQueue))
     {
 #ifdef DEBUG
-        NSLog(@"SCNetworkReachabilitySetDispatchQueue() failed: %s", SCErrorString(SCError()));
+        LogBaker(@"SCNetworkReachabilitySetDispatchQueue() failed: %s", SCErrorString(SCError()));
 #endif
         
         //UH OH - FAILURE!

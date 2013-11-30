@@ -56,6 +56,9 @@
     return ([self manifestURL] != nil);
 }
 
+/**
+ *  发起请求, 获取 shelf.json 里面的数据
+ */
 - (void)getShelfJSON:(void (^)(NSData*)) callback {
 
     if ([NSThread isMainThread]) {
@@ -122,7 +125,11 @@
 - (BOOL)canPostAPNSToken {
     return ([self postAPNSTokenURL] != nil);
 }
+
 - (BOOL)postAPNSToken:(NSString *)apnsToken {
+    
+    LogBaker(@"Divice Token 获取成功, 发送给服务器记录 (as NSString) is: %@", apnsToken);
+    
     if ([self canPostAPNSToken]) {
         NSDictionary *params = @{@"apns_token": apnsToken};
 
@@ -134,6 +141,9 @@
 #pragma mark - User ID
 
 + (BOOL)generateUUIDOnce {
+    
+    LogBaker(@"产生用户 UUID ");
+    
     if (![self UUID]) {
         [[NSUserDefaults standardUserDefaults] setObject:[NSString uuid] forKey:@"UUID"];
         [[NSUserDefaults standardUserDefaults] synchronize];
@@ -188,12 +198,12 @@
     [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
 
     if (error) {
-        NSLog(@"[ERROR] Failed POST request to %@: %@", [request URL], [error localizedDescription]);
+        LogBaker(@"[ERROR] Failed POST request to %@: %@", [request URL], [error localizedDescription]);
         return NO;
     } else if ([response statusCode] == 200) {
         return YES;
     } else {
-        NSLog(@"[ERROR] Failed POST request to %@: response was %d %@",
+        LogBaker(@"[ERROR] Failed POST request to %@: response was %d %@",
               [request URL],
               [response statusCode],
               [NSHTTPURLResponse localizedStringForStatusCode:[response statusCode]]);
@@ -201,6 +211,14 @@
     }
 }
 
+/**
+ *  对 NSURLRequest 的封装, 发起 GET 请求
+ *
+ *  @param url         请求的链接地址
+ *  @param cachePolicy 缓存策略
+ *
+ *  @return NSData | nil
+ */
 - (NSData *)getFromURL:(NSURL *)url cachePolicy:(NSURLRequestCachePolicy)cachePolicy {
     NSError *error = nil;
     NSHTTPURLResponse *response = nil;
@@ -209,12 +227,12 @@
     NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
 
     if (error) {
-        NSLog(@"[ERROR] Failed GET request to %@: %@", [request URL], [error localizedDescription]);
+        LogBaker(@"[ERROR] Failed GET request to %@: %@", [request URL], [error localizedDescription]);
         return nil;
     } else if ([response statusCode] == 200) {
         return data;
     } else {
-        NSLog(@"[ERROR] Failed GET request to %@: response was %d %@",
+        LogBaker(@"[ERROR] Failed GET request to %@: response was %d %@",
               [request URL],
               [response statusCode],
               [NSHTTPURLResponse localizedStringForStatusCode:[response statusCode]]);

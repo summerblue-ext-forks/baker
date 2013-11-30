@@ -63,6 +63,8 @@
 #import "UIConstants.h"
 #import "Utils.h"
 
+#import "Constants.h"
+
 @implementation ModalViewController
 
 @synthesize delegate;
@@ -199,7 +201,7 @@
      * Start loading a new page in the UIWebView.
      */
 
-    // NSLog(@"[Modal] Loading '%@'", [webViewIn.request.URL absoluteString]); <-- this isn't returning the URL correctly, check
+    // LogBaker(@"[Modal] Loading '%@'", [webViewIn.request.URL absoluteString]); <-- this isn't returning the URL correctly, check
     [spinner startAnimating];
 }
 - (void)webViewDidFinishLoad:(UIWebView *)webViewIn {
@@ -208,7 +210,7 @@
      * We reset the button status here.
      */
 
-    //NSLog(@"[Modal] Finish loading.");
+    //LogBaker(@"[Modal] Finish loading.");
     [[self delegate] webView:webViewIn setCorrectOrientation:self.interfaceOrientation];
 
     // ****** Stop spinner
@@ -220,7 +222,7 @@
     btnReload.enabled = YES;
 }
 - (void)webView:(UIWebView *)webViewIn didFailLoadWithError:(NSError *)error {
-    NSLog(@"[Modal] Failed to load '%@', error code %i", [webViewIn.request.URL absoluteString], [error code]);
+    LogBaker(@"[Modal] Failed to load '%@', error code %i", [webViewIn.request.URL absoluteString], [error code]);
     if ([error code] == -1009) {
         UILabel *errorLabel = [[[UILabel alloc] initWithFrame:self.webView.frame] autorelease];
         errorLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;

@@ -37,6 +37,7 @@
 #import "SSZipArchive.h"
 #import "PageTitleLabel.h"
 #import "Utils.h"
+#import "Constants.h"
 
 #define INDEX_FILE_NAME         @"index.html"
 
@@ -62,7 +63,7 @@
 
     self = [super init];
     if (self) {
-        NSLog(@"[BakerView] Init book view...");
+        LogBaker(@"[BakerView] Init book view...");
         self.book = bakerBook;
 
         if ([self respondsToSelector:@selector(automaticallyAdjustsScrollViewInsets)]) {
@@ -73,7 +74,7 @@
 
         // ****** DEVICE SCREEN BOUNDS
         screenBounds = [[UIScreen mainScreen] bounds];
-        NSLog(@"[BakerView]     Device Screen (WxH): %fx%f.", screenBounds.size.width, screenBounds.size.height);
+        LogBaker(@"[BakerView]     Device Screen (WxH): %fx%f.", screenBounds.size.width, screenBounds.size.height);
 
 
         // ****** SUPPORTED ORIENTATION FROM PLIST
@@ -92,7 +93,7 @@
 
         // ****** STATUS FILE
         bookStatus = [[BakerBookStatus alloc] initWithBookId:book.ID];
-        NSLog(@"[BakerView]     Status: page %@ @ scrollIndex %@px.", bookStatus.page, bookStatus.scrollIndex);
+        LogBaker(@"[BakerView]     Status: page %@ @ scrollIndex %@px.", bookStatus.page, bookStatus.scrollIndex);
 
 
         // ****** Initialize audio session for html5 audio
@@ -102,7 +103,7 @@
         ok = [audioSession setCategory:AVAudioSessionCategoryPlayback
                                  error:&setCategoryError];
         if (!ok) {
-            NSLog(@"[BakerView]     AudioSession - %s setCategoryError=%@", __PRETTY_FUNCTION__, setCategoryError);
+            LogBaker(@"[BakerView]     AudioSession - %s setCategoryError=%@", __PRETTY_FUNCTION__, setCategoryError);
         }
 
         // ****** BOOK ENVIRONMENT
@@ -194,7 +195,7 @@
         // ****** LISTENER FOR INTERCEPTOR WINDOW NOTIFICATION
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleInterceptedTouch:) name:@"notification_touch_intercepted" object:nil];
 
-        // ****** LISTENER FOR CLOSING APPLICATION
+        // ****** Application Will ResignActive 的时候调用, 保存用户的浏览状态 page 和 scrolling-y坐标
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleApplicationWillResignActive:) name:@"applicationWillResignActiveNotification" object:nil];
 
     } else {
@@ -205,11 +206,18 @@
         [self didRotateFromInterfaceOrientation:self.interfaceOrientation];
     }
 }
-- (void)handleApplicationWillResignActive:(NSNotification *)notification {
-    NSLog(@"[BakerView] Resign, saving...");
+
+/**
+ *  保存当前的状态, page 和 scrolling-y坐标 的信息, 需要保存此信息是因为 HTML 是无状态的.
+ *
+ */
+- (void)handleApplicationWillResignActive:(NSNotification *)notification
+{
+    LogBaker(@"程序即将进入后台, 不在活跃, 保存状态中..... ");
     [self saveBookStatusWithScrollIndex];
     adjustViewsOnAppDidBecomeActive = YES;
 }
+
 - (void)viewDidAppear:(BOOL)animated {
 
     if (!currentPageWillAppearUnderModal) {
@@ -238,7 +246,7 @@
     // viewDidLayoutSubviews is called after UINavigationController is already done,
     // so we can adjust the views
     if (adjustViewsOnAppDidBecomeActive) {
-        NSLog(@"[BakerView] Adjusting views on appDidBecomeActive");
+        LogBaker(@"[BakerView] Adjusting views on appDidBecomeActive");
         [self adjustScrollViewPosition];
         if (indexViewController != nil) {
             [indexViewController adjustIndexView];
@@ -248,7 +256,7 @@
 }
 
 - (BOOL)loadBookWithBookPath:(NSString *)bookPath {
-    NSLog(@"[BakerView] Loading book from path: %@", bookPath);
+    LogBaker(@"[BakerView] Loading book from path: %@", bookPath);
 
     // ****** CLEANUP PREVIOUS BOOK
     [self cleanupBookEnvironment];
@@ -281,7 +289,7 @@
         // When a screenshot folder is not specified in book.json, or is specified but not actually existing
         cachedScreenshotsPath = defaultScreeshotsPath;
     }
-    NSLog(@"[BakerView] Screenshots stored at: %@", cachedScreenshotsPath);
+    LogBaker(@"[BakerView] Screenshots stored at: %@", cachedScreenshotsPath);
 
     [cachedScreenshotsPath retain];
 
@@ -296,7 +304,7 @@
     [toLoad removeAllObjects];
 }
 - (void)resetPageSlots {
-    //NSLog(@"[BakerView] Reset leftover page slot");
+    //LogBaker(@"[BakerView] Reset leftover page slot");
 
     if (currPage) {
         [currPage setDelegate:nil];
@@ -319,7 +327,7 @@
     prevPage = nil;
 }
 - (void)resetPageDetails {
-    //NSLog(@"[BakerView] Reset page details array and empty screenshot directory");
+    //LogBaker(@"[BakerView] Reset page details array and empty screenshot directory");
 
     for (NSMutableDictionary *details in pageDetails) {
         for (NSString *key in details) {
@@ -343,12 +351,12 @@
         if ([[NSFileManager defaultManager] fileExistsAtPath:pageFile]) {
             [pages addObject:pageFile];
         } else {
-            NSLog(@"[BakerView] ERROR: Page %@ does not exist in %@.", page, book.path);
+            LogBaker(@"[BakerView] ERROR: Page %@ does not exist in %@.", page, book.path);
         }
     }
 
     totalPages = [pages count];
-    NSLog(@"[BakerView]     Pages in this book: %d", totalPages);
+    LogBaker(@"[BakerView]     Pages in this book: %d", totalPages);
 }
 - (void)startReading {
 
@@ -385,7 +393,7 @@
     [self handlePageLoading];
 }
 - (void)buildPageDetails {
-    //NSLog(@"[BakerView] Init page details for the book pages");
+    //LogBaker(@"[BakerView] Init page details for the book pages");
 
     for (int i = 0; i < totalPages; i++) {
 
@@ -456,7 +464,7 @@
     }
 }
 - (void)updateBookLayout {
-    //NSLog(@"[BakerView]     Prevent page from changing until layout is updated");
+    //LogBaker(@"[BakerView]     Prevent page from changing until layout is updated");
     [self lockPage:@YES];
     [self showPageDetails];
 
@@ -474,7 +482,7 @@
 
     [scrollView scrollRectToVisible:[self frameForPage:currentPageNumber] animated:NO];
 
-    //NSLog(@"[BakerView]     Unlock page changing");
+    //LogBaker(@"[BakerView]     Unlock page changing");
     [self lockPage:@NO];
 }
 - (void)adjustScrollViewPosition {
@@ -489,7 +497,7 @@
                      completion:^(BOOL finished) {}];
 }
 - (void)setPageSize:(NSString *)orientation {
-    NSLog(@"[BakerView] Set size for orientation: %@", orientation);
+    LogBaker(@"[BakerView] Set size for orientation: %@", orientation);
 
     pageWidth  = screenBounds.size.width;
     pageHeight = screenBounds.size.height;
@@ -504,7 +512,7 @@
     scrollView.contentSize = CGSizeMake(pageWidth * totalPages, pageHeight);
 }
 - (void)setTappableAreaSize {
-    //NSLog(@"[BakerView] Set tappable area size");
+    //LogBaker(@"[BakerView] Set tappable area size");
 
     int tappableAreaSize = screenBounds.size.width/16;
     if (screenBounds.size.width < 768) {
@@ -517,7 +525,7 @@
     rightTapArea = CGRectMake(pageWidth - tappableAreaSize, tappableAreaSize, tappableAreaSize, pageHeight - (tappableAreaSize * 2));
 }
 - (void)showPageDetails {
-    //NSLog(@"[BakerView] Show page details for the book pages");
+    //LogBaker(@"[BakerView] Show page details for the book pages");
 
     // TODO: IS THIS NEEDED ?
     for (NSMutableDictionary *details in pageDetails) {
@@ -586,7 +594,7 @@
 }
 
 - (void)setupWebView:(UIWebView *)webView {
-    //NSLog(@"[BakerView] Setup webView");
+    //LogBaker(@"[BakerView] Setup webView");
 
     if (webViewBackground == nil)
     {
@@ -627,7 +635,7 @@
 
 #pragma mark - LOADING
 - (BOOL)changePage:(int)page {
-    //NSLog(@"[BakerView] Check if page has changed");
+    //LogBaker(@"[BakerView] Check if page has changed");
 
     BOOL pageChanged = NO;
 
@@ -677,7 +685,7 @@
     NSString *path = [NSString stringWithString:pages[currentPageNumber - 1]];
     if ([[NSFileManager defaultManager] fileExistsAtPath:path] && tapNumber != 0) {
 
-        //NSLog(@"[BakerView] Goto page -> %@", [[NSFileManager defaultManager] displayNameAtPath:path]);
+        //LogBaker(@"[BakerView] Goto page -> %@", [[NSFileManager defaultManager] displayNameAtPath:path]);
 
         if ([book.bakerRendering isEqualToString:@"three-cards"])
         {
@@ -692,7 +700,7 @@
                 direction = -direction;
                 tapNumber = -tapNumber;
             }
-            NSLog(@"[BakerView]     Tap number: %d", tapNumber);
+            LogBaker(@"[BakerView]     Tap number: %d", tapNumber);
 
             if (tapNumber > 2) {
                 tapNumber = 0;
@@ -861,7 +869,7 @@
     }
 }
 - (void)addPageLoading:(int)slot {
-    //NSLog(@"[BakerView] Add page to the loding queue");
+    //LogBaker(@"[BakerView] Add page to the loding queue");
 
     NSArray *objs = @[@(slot), @(currentPageNumber + slot)];
     NSArray *keys = @[@"slot", @"page"];
@@ -878,14 +886,14 @@
         int slot = [[toLoad[0] valueForKey:@"slot"] intValue];
         int page = [[toLoad[0] valueForKey:@"page"] intValue];
 
-        //NSLog(@"[BakerView] Handle loading of slot %d with page %d", slot, page);
+        //LogBaker(@"[BakerView] Handle loading of slot %d with page %d", slot, page);
 
         [toLoad removeObjectAtIndex:0];
         [self loadSlot:slot withPage:page];
     }
 }
 - (void)loadSlot:(int)slot withPage:(int)page {
-    //NSLog(@"[BakerView] Setting up slot %d with page %d.", slot, page);
+    //LogBaker(@"[BakerView] Setting up slot %d with page %d.", slot, page);
 
     UIWebView *webView = [[[UIWebView alloc] init] autorelease];
     [self setupWebView:webView];
@@ -944,7 +952,7 @@
     NSString *path = [NSString stringWithString:pages[page - 1]];
 
     if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-        NSLog(@"[BakerView] Loading: %@", [[NSFileManager defaultManager] displayNameAtPath:path]);
+        LogBaker(@"[BakerView] Loading: %@", [[NSFileManager defaultManager] displayNameAtPath:path]);
         [webView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:path]]];
         return YES;
     }
@@ -958,7 +966,7 @@
      * It contains a fix to avoid an overlapping status bar.
      */
 
-    //NSLog(@"[BakerView] Loading a Modal WebView with URL: %@", url.absoluteString);
+    //LogBaker(@"[BakerView] Loading a Modal WebView with URL: %@", url.absoluteString);
     [[NSNotificationCenter defaultCenter] postNotificationName:@"BakerViewModalBrowser" object:self]; // -> Baker Analytics Event
 
     myModalViewController = [[[ModalViewController alloc] initWithUrl:url] autorelease];
@@ -985,19 +993,19 @@
     return CGRectMake(pageWidth * (page - 1), 0, pageWidth, pageHeight);
 }
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scroll {
-    //NSLog(@"[BakerView] Scrollview will begin dragging");
+    //LogBaker(@"[BakerView] Scrollview will begin dragging");
     [self hideBars:@YES];
 }
 - (void)scrollViewDidEndDragging:(UIScrollView *)scroll willDecelerate:(BOOL)decelerate {
-    //NSLog(@"[BakerView] Scrollview did end dragging");
+    //LogBaker(@"[BakerView] Scrollview did end dragging");
 }
 - (void)scrollViewWillBeginDecelerating:(UIScrollView *)scroll {
-    //NSLog(@"[BakerView] Scrollview will begin decelerating");
+    //LogBaker(@"[BakerView] Scrollview will begin decelerating");
 }
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scroll {
 
     int page = (int)(scroll.contentOffset.x / pageWidth) + 1;
-    NSLog(@"[BakerView] Swiping to page: %d", page);
+    LogBaker(@"[BakerView] Swiping to page: %d", page);
 
     if (currentPageNumber != page) {
 
@@ -1011,11 +1019,11 @@
     }
 }
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scroll {
-    //NSLog(@"[BakerView] Scrollview did end scrolling animation");
+    //LogBaker(@"[BakerView] Scrollview did end scrolling animation");
 
     stackedScrollingAnimations--;
     if (stackedScrollingAnimations == 0) {
-        //NSLog(@"[BakerView]     Scroll enabled");
+        //LogBaker(@"[BakerView]     Scroll enabled");
         scroll.scrollEnabled = [book.bakerPageTurnSwipe boolValue]; // YES by default, NO if specified
     }
 }
@@ -1028,17 +1036,17 @@
 
     if ([webView isEqual:prevPage])
     {
-        //NSLog(@"[BakerView]     Page is prev page --> load page");
+        //LogBaker(@"[BakerView]     Page is prev page --> load page");
         return YES;
     }
     else if ([webView isEqual:nextPage])
     {
-        //NSLog(@"[BakerView]     Page is next page --> load page");
+        //LogBaker(@"[BakerView]     Page is next page --> load page");
         return YES;
     }
     else if (currentPageIsDelayingLoading)
     {
-        //NSLog(@"[BakerView]     Page is current page and current page IS delaying loading --> load page");
+        //LogBaker(@"[BakerView]     Page is current page and current page IS delaying loading --> load page");
         currentPageIsDelayingLoading = NO;
         return ![self isIndexView:webView];
     }
@@ -1050,18 +1058,18 @@
             // Existing, checking if index...
             if([[url relativePath] isEqualToString:[indexViewController indexPath]])
             {
-                //NSLog(@"[BakerView]     Page is index --> load index");
+                //LogBaker(@"[BakerView]     Page is index --> load index");
                 return YES;
             }
             else
             {
-                //NSLog(@"[BakerView]     Page is current page and current page IS NOT delaying loading --> handle clicked link: %@", [url absoluteString]);
+                //LogBaker(@"[BakerView]     Page is current page and current page IS NOT delaying loading --> handle clicked link: %@", [url absoluteString]);
 
                 // Not index, checking scheme...
                 if ([[url scheme] isEqualToString:@"file"])
                 {
                     // ****** Handle: file://
-                    NSLog(@"[BakerView]     Page is a link with scheme file:// --> load internal link");
+                    LogBaker(@"[BakerView]     Page is a link with scheme file:// --> load internal link");
 
                     anchorFromURL  = [[url fragment] retain];
                     NSString *file = [[url relativePath] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
@@ -1091,7 +1099,7 @@
                 else if ([[url scheme] isEqualToString:@"mailto"])
                 {
                     // Handle mailto links using MessageUI framework
-                    NSLog(@"[BakerView]     Page is a link with scheme mailto: --> handle mail link");
+                    LogBaker(@"[BakerView]     Page is a link with scheme mailto: --> handle mail link");
 
                     // Build temp array and dictionary
                     NSArray *tempArray = [[url absoluteString] componentsSeparatedByString:@"?"];
@@ -1158,7 +1166,7 @@
                     if ([[UIApplication sharedApplication] canOpenURL:url]) {
                         [[UIApplication sharedApplication] openURL:url];
                     } else {
-                        NSLog(@"[BakerView] ERROR: No installed application to open '%@'. An application to handle the '%@' URL scheme is required.", url, [url scheme]);
+                        LogBaker(@"[BakerView] ERROR: No installed application to open '%@'. An application to handle the '%@' URL scheme is required.", url, [url scheme]);
                         [Utils webView:currPage dispatchHTMLEvent:@"urlnothandled" withParams:@{@"url": url}];
                     }
 
@@ -1172,7 +1180,7 @@
                     // * open a page outside of Baker.
 
                     NSString *params = [url query];
-                    //NSLog(@"[BakerView]     Opening absolute URL: %@", [url absoluteString]);
+                    //LogBaker(@"[BakerView]     Opening absolute URL: %@", [url absoluteString]);
 
                     if (params != nil)
                     {
@@ -1184,41 +1192,41 @@
 
                         if (matches > 0)
                         {
-                            //NSLog(@"[BakerView]     Link contain param '%@' --> open link in Safari", URL_OPEN_EXTERNAL);
+                            //LogBaker(@"[BakerView]     Link contain param '%@' --> open link in Safari", URL_OPEN_EXTERNAL);
 
                             // Generate new URL without
                             // We are regexp-ing three things: the string alone, the string first with other content, the string with other content in any other position
                             NSString *pattern = [[[NSString alloc] initWithFormat:@"\\?%@$|(?<=\\?)%@&?|()&?%@", URL_OPEN_EXTERNAL, URL_OPEN_EXTERNAL, URL_OPEN_EXTERNAL] autorelease];
                             NSRegularExpression *replacerRegexp = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:NULL];
                             NSString *oldURL = [url absoluteString];
-                            //NSLog(@"[BakerView]     replacement pattern: %@", [replacerRegexp pattern]);
+                            //LogBaker(@"[BakerView]     replacement pattern: %@", [replacerRegexp pattern]);
                             NSString *newURL = [replacerRegexp stringByReplacingMatchesInString:oldURL options:0 range:NSMakeRange(0, [oldURL length]) withTemplate:@""];
 
-                            NSLog(@"[BakerView]     Opening in Safari with URL: %@", newURL);
+                            LogBaker(@"[BakerView]     Opening in Safari with URL: %@", newURL);
                             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:newURL]];
 
                             return NO;
                         }
                         else if (matchesModal)
                         {
-                            //NSLog(@"[BakerView]     Link contain param '%@' --> open link modally", URL_OPEN_MODALLY);
+                            //LogBaker(@"[BakerView]     Link contain param '%@' --> open link modally", URL_OPEN_MODALLY);
 
                             // Generate new URL without
                             // We are regexp-ing three things: the string alone, the string first with other content, the string with other content in any other position
                             NSString *pattern = [[[NSString alloc] initWithFormat:@"\\?%@$|(?<=\\?)%@&?|()&?%@", URL_OPEN_MODALLY, URL_OPEN_MODALLY, URL_OPEN_MODALLY] autorelease];
                             NSRegularExpression *replacerRegexp = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:NULL];
                             NSString *oldURL = [url absoluteString];
-                            //NSLog(@"[BakerView]     replacement pattern: %@", [replacerRegexp pattern]);
+                            //LogBaker(@"[BakerView]     replacement pattern: %@", [replacerRegexp pattern]);
                             NSString *newURL = [replacerRegexp stringByReplacingMatchesInString:oldURL options:0 range:NSMakeRange(0, [oldURL length]) withTemplate:@""];
 
-                            NSLog(@"[BakerView]     Opening in Modal Panel with URL: %@", newURL);
+                            LogBaker(@"[BakerView]     Opening in Modal Panel with URL: %@", newURL);
                             [self loadModalWebView:[NSURL URLWithString:newURL]];
 
                             return NO;
                         }
                     }
 
-                    NSLog(@"[BakerView]     Opening absolute link in page (no parameter specified). URL: %@", [url absoluteString]);
+                    LogBaker(@"[BakerView]     Opening absolute link in page (no parameter specified). URL: %@", [url absoluteString]);
 
                     return YES;
                 }
@@ -1229,20 +1237,20 @@
     }
 }
 - (void)webViewDidStartLoad:(UIWebView *)webView {
-    //NSLog(@"[BakerView] Page did start load");
+    //LogBaker(@"[BakerView] Page did start load");
 }
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
     // Sent if a web view failed to load content.
     if ([webView isEqual:currPage]) {
-        NSLog(@"[BakerView] ERROR: CurrPage failed to load content with error: %@", error);
+        LogBaker(@"[BakerView] ERROR: CurrPage failed to load content with error: %@", error);
     } else if ([webView isEqual:prevPage]) {
-        NSLog(@"[BakerView] ERROR: PrevPage failed to load content with error: %@", error);
+        LogBaker(@"[BakerView] ERROR: PrevPage failed to load content with error: %@", error);
     } else if ([webView isEqual:nextPage]) {
-        NSLog(@"[BakerView] ERROR: NextPage failed to load content with error: %@", error);
+        LogBaker(@"[BakerView] ERROR: NextPage failed to load content with error: %@", error);
     }
 }
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
-    //NSLog(@"[BakerView] Page did finish load");
+    //LogBaker(@"[BakerView] Page did finish load");
     [self webView:webView setCorrectOrientation:self.interfaceOrientation];
 
     if (webView.hidden == YES)
@@ -1269,7 +1277,7 @@
 }
 - (void)webView:(UIWebView *)webView hidden:(BOOL)status animating:(BOOL)animating {
 
-    //NSLog(@"[BakerView] webView hidden: %d animating: %d", status, animating);
+    //LogBaker(@"[BakerView] webView hidden: %d animating: %d", status, animating);
 
     if (animating) {
 
@@ -1296,7 +1304,7 @@
         if (currentPageFirstLoading)
         {
             // ... check if there is a saved starting scroll index and set it
-            //NSLog(@"[BakerView]     Handle last scroll index if necessary");
+            //LogBaker(@"[BakerView]     Handle last scroll index if necessary");
             NSString *currPageScrollIndex = bookStatus.scrollIndex;
             if (currPageScrollIndex != nil) {
                 [self scrollDownCurrentPage:[currPageScrollIndex intValue] animating:YES];
@@ -1305,7 +1313,7 @@
         }
         else
         {
-            //NSLog(@"[BakerView]     Handle saved hash reference if necessary");
+            //LogBaker(@"[BakerView]     Handle saved hash reference if necessary");
             [self handleAnchor:YES];
         }
     }
@@ -1420,7 +1428,7 @@
 
     if (![self checkScreeshotForPage:pageNumber andOrientation:interfaceOrientation])
     {
-        //NSLog(@"[BakerView] Taking screenshot of page %d", pageNumber);
+        //LogBaker(@"[BakerView] Taking screenshot of page %d", pageNumber);
 
         NSString *screenshotFile = [cachedScreenshotsPath stringByAppendingPathComponent:[NSString stringWithFormat:@"screenshot-%@-%i.jpg", interfaceOrientation, pageNumber]];
         UIImage *screenshot = nil;
@@ -1435,7 +1443,7 @@
             if (screenshot) {
                 BOOL saved = [UIImageJPEGRepresentation(screenshot, 0.6) writeToFile:screenshotFile options:NSDataWritingAtomic error:nil];
                 if (saved) {
-                    NSLog(@"[BakerView] Screenshot succesfully saved to file %@", screenshotFile);
+                    LogBaker(@"[BakerView] Screenshot succesfully saved to file %@", screenshotFile);
                     [self placeScreenshotForView:webView andPage:pageNumber andOrientation:interfaceOrientation];
                     shouldRevealWebView = NO;
                 }
@@ -1530,7 +1538,7 @@
         }
     } else if (shouldPropagateIndexInterceptedTouch) {
         if (touch.tapCount == 2) {
-            //NSLog(@"[BakerView]     Index Double Tap: Bars Toggled");
+            //LogBaker(@"[BakerView]     Index Double Tap: Bars Toggled");
             [self toggleBars];
         }
     }
@@ -1542,37 +1550,37 @@
      */
 
     CGPoint tapPoint = [touch locationInView:self.view];
-    //NSLog(@"[BakerView] User tap at [%f, %f]", tapPoint.x, tapPoint.y);
+    //LogBaker(@"[BakerView] User tap at [%f, %f]", tapPoint.x, tapPoint.y);
 
     // Swipe or scroll the page.
     if (!currentPageIsLocked)
     {
         if (CGRectContainsPoint(upTapArea, tapPoint)) {
-            NSLog(@"[BakerView]    Tap UP /\\!");
+            LogBaker(@"[BakerView]    Tap UP /\\!");
             [self scrollUpCurrentPage:([self getCurrentPageOffset] - pageHeight + 50) animating:YES];
         } else if (CGRectContainsPoint(downTapArea, tapPoint)) {
-            NSLog(@"[BakerView]    Tap DOWN \\/");
+            LogBaker(@"[BakerView]    Tap DOWN \\/");
             [self scrollDownCurrentPage:([self getCurrentPageOffset] + pageHeight - 50) animating:YES];
         } else if (CGRectContainsPoint(leftTapArea, tapPoint) || CGRectContainsPoint(rightTapArea, tapPoint)) {
             int page = 0;
             if (CGRectContainsPoint(leftTapArea, tapPoint)) {
-                NSLog(@"[BakerView]    Tap LEFT >>>");
+                LogBaker(@"[BakerView]    Tap LEFT >>>");
                 page = currentPageNumber - 1;
             } else if (CGRectContainsPoint(rightTapArea, tapPoint)) {
-                NSLog(@"[BakerView]    Tap RIGHT <<<");
+                LogBaker(@"[BakerView]    Tap RIGHT <<<");
                 page = currentPageNumber + 1;
             }
 
             if ([book.bakerPageTurnTap boolValue]) [self changePage:page];
         }
         else if (touch.tapCount == 2) {
-            //NSLog(@"[BakerView]     Index Double Tap: Bars Toggled");
+            //LogBaker(@"[BakerView]     Index Double Tap: Bars Toggled");
             [self toggleBars];
         }
     }
 }
 - (void)userDidScroll:(UITouch *)touch {
-    //NSLog(@"[BakerView] User scroll");
+    //LogBaker(@"[BakerView] User scroll");
     [self hideBars:@YES];
 
     currPage.backgroundColor = webViewBackground;
@@ -1584,7 +1592,7 @@
     for (UIView *subview in currPage.subviews) {
         if ([subview isKindOfClass:[UIScrollView class]]) {
             CGSize size = ((UIScrollView *)subview).contentSize;
-            //NSLog(@"[BakerView] Setting current page height from %d to %f", currentPageHeight, size.height);
+            //LogBaker(@"[BakerView] Setting current page height from %d to %f", currentPageHeight, size.height);
             currentPageHeight = size.height;
         }
     }
@@ -1605,7 +1613,7 @@
     {
         if (targetOffset < 0) targetOffset = 0;
 
-        //NSLog(@"[BakerView] Scrolling page up to %d", targetOffset);
+        //LogBaker(@"[BakerView] Scrolling page up to %d", targetOffset);
         [self scrollPage:currPage to:[NSString stringWithFormat:@"%d", targetOffset] animating:animating];
     }
 }
@@ -1616,7 +1624,7 @@
     {
         if (targetOffset > currentPageMaxScroll) targetOffset = currentPageMaxScroll;
 
-        //NSLog(@"[BakerView] Scrolling page down to %d", targetOffset);
+        //LogBaker(@"[BakerView] Scrolling page down to %d", targetOffset);
         [self scrollPage:currPage to:[NSString stringWithFormat:@"%d", targetOffset] animating:animating];
     }
 
@@ -1680,7 +1688,7 @@
 - (void)toggleBars {
     // if modal view is up, don't toggle.
     if (!self.presentedViewController) {
-        NSLog(@"[BakerView] Toggle bars visibility");
+        LogBaker(@"[BakerView] Toggle bars visibility");
 
         if (barsHidden) {
             [self showBars];
@@ -1772,7 +1780,7 @@
 - (void)handleBookProtocol:(NSURL *)url
 {
     // ****** Handle: book://
-    NSLog(@"[BakerView]     Page is a link with scheme book:// --> download new book");
+    LogBaker(@"[BakerView]     Page is a link with scheme book:// --> download new book");
     if ([[url pathExtension] isEqualToString:@"html"]) {
         // page   --> [[url lastPathComponent] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]
         // anchor --> [url fragment];
@@ -1848,10 +1856,10 @@
             ||
             (UIInterfaceOrientationIsPortrait(interfaceOrientation) && [book.orientation isEqualToString:@"portrait"]) ) {
 
-            //NSLog(@"[BakerView] Device and book orientations are in sync");
+            //LogBaker(@"[BakerView] Device and book orientations are in sync");
             return NO;
         } else {
-            //NSLog(@"[BakerView] Device and book orientations are out of sync, force orientation update");
+            //LogBaker(@"[BakerView] Device and book orientations are out of sync, force orientation update");
 
             // Present and dismiss a vanilla view controller to trigger the orientation update
             [self presentViewController:[UIViewController new] animated:NO completion:^{ [self dismissViewControllerAnimated:NO completion:nil]; }];
@@ -1872,12 +1880,16 @@
         [self saveBookStatusWithScrollIndex];
     }
 }
+
+/**
+ *  保存当前的状态, page 和 scrolling-y坐标 的信息, 需要保存此信息是因为 HTML 是无状态的.
+ */
 - (void)saveBookStatusWithScrollIndex {
     if (currPage != nil) {
         bookStatus.scrollIndex = [currPage stringByEvaluatingJavaScriptFromString:@"window.scrollY;"];
     }
     [bookStatus save];
-    //NSLog(@"[BakerView] Saved status");
+    //LogBaker(@"[BakerView] Saved status");
 }
 - (void)didReceiveMemoryWarning {
     // Releases the view if it doesn't have a superview.
@@ -1928,23 +1940,23 @@
     // Log the result for debugging purpose
     switch (result) {
         case MFMailComposeResultCancelled:
-            NSLog(@"[BakerView]     Mail cancelled.");
+            LogBaker(@"[BakerView]     Mail cancelled.");
             break;
 
         case MFMailComposeResultSaved:
-            NSLog(@"[BakerView]     Mail saved.");
+            LogBaker(@"[BakerView]     Mail saved.");
             break;
 
         case MFMailComposeResultSent:
-            NSLog(@"[BakerView]     Mail sent.");
+            LogBaker(@"[BakerView]     Mail sent.");
             break;
 
         case MFMailComposeResultFailed:
-            NSLog(@"[BakerView]     Mail failed, check NSError.");
+            LogBaker(@"[BakerView]     Mail failed, check NSError.");
             break;
 
         default:
-            NSLog(@"[BakerView]     Mail not sent.");
+            LogBaker(@"[BakerView]     Mail not sent.");
             break;
     }
 

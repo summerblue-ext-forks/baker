@@ -70,16 +70,17 @@
 
         purchaseDelayed = NO;
 
-        #ifdef BAKER_NEWSSTAND
+
         purchasesManager = [PurchasesManager sharedInstance];
         [self addPurchaseObserver:@selector(handleIssueRestored:) name:@"notification_issue_restored"];
 
+        // 注册消息通知
         [self addIssueObserver:@selector(handleDownloadStarted:) name:self.issue.notificationDownloadStartedName];
         [self addIssueObserver:@selector(handleDownloadProgressing:) name:self.issue.notificationDownloadProgressingName];
         [self addIssueObserver:@selector(handleDownloadFinished:) name:self.issue.notificationDownloadFinishedName];
         [self addIssueObserver:@selector(handleDownloadError:) name:self.issue.notificationDownloadErrorName];
         [self addIssueObserver:@selector(handleUnzipError:) name:self.issue.notificationUnzipErrorName];
-        #endif
+
     }
     return self;
 }
@@ -192,7 +193,7 @@
     NKLibrary *nkLib = [NKLibrary sharedLibrary];
     for (NKAssetDownload *asset in [nkLib downloadingAssets]) {
         if ([asset.issue.name isEqualToString:self.issue.ID]) {
-            NSLog(@"[BakerShelf] Resuming abandoned Newsstand download: %@", asset.issue.name);
+            LogBaker(@"[BakerShelf] Resuming abandoned Newsstand download: %@", asset.issue.name);
             [self.issue downloadWithAsset:asset];
         }
     }
@@ -318,9 +319,13 @@
 }
 - (void)refresh:(NSString *)status
 {
-    //NSLog(@"[BakerShelf] Shelf UI - Refreshing %@ item with status from <%@> to <%@>", self.issue.ID, self.currentStatus, status);
+    
+    LogBaker(@"杂志状态更新 --> 书架里每个 issue 的状态, 杂志名称 <%@> 状态从  <%@> 更新为 <%@>", self.issue.ID, self.currentStatus, status);
+    
     if ([status isEqualToString:@"remote"])
     {
+        LogBaker(@"杂志状态  <%@> 还未下载. ", self.issue.ID);
+        
         [self.priceLabel setText:NSLocalizedString(@"FREE_TEXT", nil)];
 
         [self.actionButton setTitle:NSLocalizedString(@"ACTION_REMOTE_TEXT", nil) forState:UIControlStateNormal];
@@ -334,7 +339,8 @@
     }
     else if ([status isEqualToString:@"connecting"])
     {
-        NSLog(@"[BakerShelf] '%@' is Connecting...", self.issue.ID);
+        LogBaker(@"杂志状态  <%@> 连接中... 请稍后! ", self.issue.ID);
+        
         [self.spinner startAnimating];
 
         self.actionButton.hidden = YES;
@@ -347,7 +353,7 @@
     }
     else if ([status isEqualToString:@"downloading"])
     {
-        NSLog(@"[BakerShelf] '%@' is Downloading...", self.issue.ID);
+        LogBaker(@"杂志状态  <%@> 下载中... 请稍后! ", self.issue.ID);
         [self.spinner startAnimating];
 
         self.actionButton.hidden = YES;
@@ -360,7 +366,7 @@
     }
     else if ([status isEqualToString:@"downloaded"])
     {
-        NSLog(@"[BakerShelf] '%@' is Ready to be Read.", self.issue.ID);
+        LogBaker(@"杂志状态  <%@> 已经下载到本地, 可提供阅读. ", self.issue.ID);
         [self.actionButton setTitle:NSLocalizedString(@"ACTION_DOWNLOADED_TEXT", nil) forState:UIControlStateNormal];
         [self.spinner stopAnimating];
 
@@ -372,6 +378,8 @@
     }
     else if ([status isEqualToString:@"bundled"])
     {
+        LogBaker(@"杂志状态  <%@> 还未下载. ", self.issue.ID);
+        
         [self.actionButton setTitle:NSLocalizedString(@"ACTION_DOWNLOADED_TEXT", nil) forState:UIControlStateNormal];
         [self.spinner stopAnimating];
 
@@ -383,6 +391,8 @@
     }
     else if ([status isEqualToString:@"opening"])
     {
+        LogBaker(@"杂志状态  <%@> 打开状态.  ", self.issue.ID);
+        
         [self.spinner startAnimating];
 
         self.actionButton.hidden = YES;
@@ -394,6 +404,8 @@
     }
     else if ([status isEqualToString:@"purchasable"])
     {
+        LogBaker(@"杂志状态  <%@> 可购买. ", self.issue.ID);
+        
         [self.actionButton setTitle:NSLocalizedString(@"ACTION_BUY_TEXT", nil) forState:UIControlStateNormal];
         [self.spinner stopAnimating];
 
@@ -409,7 +421,7 @@
     }
     else if ([status isEqualToString:@"purchasing"])
     {
-        NSLog(@"[BakerShelf] '%@' is being Purchased...", self.issue.ID);
+        LogBaker(@"杂志状态  <%@> 购买中. ", self.issue.ID);
         [self.spinner startAnimating];
 
         self.loadingLabel.text = NSLocalizedString(@"BUYING_TEXT", nil);
@@ -422,7 +434,7 @@
     }
     else if ([status isEqualToString:@"purchased"])
     {
-        NSLog(@"[BakerShelf] '%@' is Purchased.", self.issue.ID);
+        LogBaker(@"杂志状态  <%@> 已经购买过了. ", self.issue.ID);
         [self.priceLabel setText:NSLocalizedString(@"PURCHASED_TEXT", nil)];
 
         [self.actionButton setTitle:NSLocalizedString(@"ACTION_REMOTE_TEXT", nil) forState:UIControlStateNormal];
@@ -436,6 +448,8 @@
     }
     else if ([status isEqualToString:@"unpriced"])
     {
+        LogBaker(@"杂志状态  <%@> 未标价. ", self.issue.ID);
+        
         [self.spinner startAnimating];
 
         self.loadingLabel.text = NSLocalizedString(@"RETRIEVING_TEXT", nil);
@@ -573,7 +587,7 @@
         [purchasesManager markAsPurchased:transaction.payment.productIdentifier];
 
         if (![purchasesManager finishTransaction:transaction]) {
-            NSLog(@"[BakerShelf] Could not confirm purchase restore with remote server for %@", transaction.payment.productIdentifier);
+            LogBaker(@"[BakerShelf] Could not confirm purchase restore with remote server for %@", transaction.payment.productIdentifier);
         }
 
         self.issue.transientStatus = BakerIssueTransientStatusNone;
@@ -600,24 +614,33 @@
 
 #pragma mark - Newsstand download management
 
-- (void)handleDownloadStarted:(NSNotification *)notification {
+- (void)handleDownloadStarted:(NSNotification *)notification
+{
     [self refresh];
 }
 - (void)handleDownloadProgressing:(NSNotification *)notification {
     float bytesWritten = [(notification.userInfo)[@"totalBytesWritten"] floatValue];
     float bytesExpected = [(notification.userInfo)[@"expectedTotalBytes"] floatValue];
 
-    if ([self.currentStatus isEqualToString:@"connecting"]) {
+    if ([self.currentStatus isEqualToString:@"connecting"])
+    {
         self.issue.transientStatus = BakerIssueTransientStatusDownloading;
         [self refresh];
     }
+    
+    LogBaker(@"下载进行中........... 当前进度 百分之 %f", (bytesWritten / bytesExpected)*100 );
+    
     [self.progressBar setProgress:(bytesWritten / bytesExpected) animated:YES];
 }
-- (void)handleDownloadFinished:(NSNotification *)notification {
+- (void)handleDownloadFinished:(NSNotification *)notification
+{
+    LogBaker(@"下载完成!!!! ");
     self.issue.transientStatus = BakerIssueTransientStatusNone;
     [self refresh];
 }
-- (void)handleDownloadError:(NSNotification *)notification {
+- (void)handleDownloadError:(NSNotification *)notification
+{
+    LogBaker(@"下载中断, 有错误发生. ");
     [Utils showAlertWithTitle:NSLocalizedString(@"DOWNLOAD_FAILED_TITLE", nil)
                       message:NSLocalizedString(@"DOWNLOAD_FAILED_MESSAGE", nil)
                   buttonTitle:NSLocalizedString(@"DOWNLOAD_FAILED_CLOSE", nil)];
@@ -625,7 +648,9 @@
     self.issue.transientStatus = BakerIssueTransientStatusNone;
     [self refresh];
 }
-- (void)handleUnzipError:(NSNotification *)notification {
+- (void)handleUnzipError:(NSNotification *)notification
+{
+    LogBaker(@"解压文件发生错误.");
     [Utils showAlertWithTitle:NSLocalizedString(@"UNZIP_FAILED_TITLE", nil)
                       message:NSLocalizedString(@"UNZIP_FAILED_MESSAGE", nil)
                   buttonTitle:NSLocalizedString(@"UNZIP_FAILED_CLOSE", nil)];

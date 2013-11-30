@@ -113,7 +113,7 @@
     [self logProducts:response.products];
 
     for (NSString *productID in response.invalidProductIdentifiers) {
-        NSLog(@"Invalid product identifier: %@", productID);
+        LogBaker(@"Invalid product identifier: %@", productID);
     }
 
     NSMutableSet *ids = [NSMutableSet setWithCapacity:response.products.count];
@@ -129,14 +129,14 @@
 }
 
 - (void)logProducts:(NSArray *)skProducts {
-    NSLog(@"Received %d products from App Store", [skProducts count]);
+    LogBaker(@"Received %d products from App Store", [skProducts count]);
     for (SKProduct *skProduct in skProducts) {
-        NSLog(@"- %@", skProduct.productIdentifier);
+        LogBaker(@"- %@", skProduct.productIdentifier);
     }
 }
 
 - (void)request:(SKRequest *)request didFailWithError:(NSError *)error {
-    NSLog(@"App Store request failure: %@", error);
+    LogBaker(@"App Store request failure: %@", error);
 
     if (_enableProductRequestFailureNotifications) {
         NSDictionary *userInfo = @{@"error": error};
@@ -165,7 +165,7 @@
 
         return YES;
     } else {
-        NSLog(@"Trying to buy unavailable product %@", productID);
+        LogBaker(@"Trying to buy unavailable product %@", productID);
 
         return NO;
     }
@@ -205,35 +205,61 @@
     }
 }
 
+/**
+ *
+ */
 - (void)retrievePurchasesFor:(NSSet *)productIDs withCallback:(void (^)(NSDictionary*))callback {
     BakerAPI *api = [BakerAPI sharedInstance];
 
-    if ([api canGetPurchasesJSON]) {
+    /**
+     *  获取用户购买过的 issues 列表, 以下是个例子:
+     
+     {
+         "issues": ["com.example.MyBook.jan2013", "com.example.MyBook.feb2013", "com.example.MyBook.mar2013"],
+         "subscribed": false
+     }
+     
+     * issues 是购买过的, 属于用户的杂志, subscribed 当前是否订阅杂志
+     */
+    if ([api canGetPurchasesJSON])
+    {
+        LogBaker(@"获取 PurchasesJSON ");
+        
         [api getPurchasesJSON:^(NSData* jsonResponse) {
             if (jsonResponse) {
                 NSError* error = nil;
                 NSDictionary *purchasesResponse = [NSJSONSerialization JSONObjectWithData:jsonResponse
                                                                                   options:0
                                                                                     error:&error];
-                // TODO: handle error
+                // TODO: handle error, 处理 json 解析的错误
                 
-                if (purchasesResponse) {
+                if (purchasesResponse)
+                {
                     NSArray *purchasedIssues = purchasesResponse[@"issues"];
+                    
+                    // 设置 是否是订阅用户 的选项
                     self.subscribed = [purchasesResponse[@"subscribed"] boolValue];
                     
+                    // 所有杂志列表, 过滤出用户购买过的, 注意, 这么做是为了跟 shelf.json 里面的数据同步 (杂志列表的增加修改)
                     [productIDs enumerateObjectsUsingBlock:^(id obj, BOOL *stop) {
                         _purchases[obj] = @([purchasedIssues containsObject:obj]);
                     }];
-                } else {
-                    NSLog(@"ERROR: Could not parse response from purchases API call. Received: %@", jsonResponse);
+                }
+                else
+                {
+                    LogAllTheTime(@"ERROR: 无法解析 purchasesResponse JSON 数据 %@", jsonResponse);
                 }
             }
 
+            // 回调函数, 并把购买过的数组传递回去
             if (callback) {
                 callback([NSDictionary dictionaryWithDictionary:_purchases]);
             }
         }];
-    } else if (callback) {
+    }
+    else if (callback)
+    {
+        LogBaker(@"未设置 PURCHASES_URL 常量, 等于不开启 In App Purches 功能, 不需要获取 Purchases JSON ");
         callback(nil);
     }
 }
@@ -279,23 +305,23 @@
 }
 
 - (void)logTransactions:(NSArray *)transactions {
-    NSLog(@"Received %d transactions from App Store", [transactions count]);
+    LogBaker(@"Received %d transactions from App Store", [transactions count]);
     for(SKPaymentTransaction *transaction in transactions) {
         switch (transaction.transactionState) {
             case SKPaymentTransactionStatePurchasing:
-                NSLog(@"- purchasing: %@", transaction.payment.productIdentifier);
+                LogBaker(@"- purchasing: %@", transaction.payment.productIdentifier);
                 break;
             case SKPaymentTransactionStatePurchased:
-                NSLog(@"- purchased: %@", transaction.payment.productIdentifier);
+                LogBaker(@"- purchased: %@", transaction.payment.productIdentifier);
                 break;
             case SKPaymentTransactionStateFailed:
-                NSLog(@"- failed: %@", transaction.payment.productIdentifier);
+                LogBaker(@"- failed: %@", transaction.payment.productIdentifier);
                 break;
             case SKPaymentTransactionStateRestored:
-                NSLog(@"- restored: %@", transaction.payment.productIdentifier);
+                LogBaker(@"- restored: %@", transaction.payment.productIdentifier);
                 break;
             default:
-                NSLog(@"- unsupported transaction type: %@", transaction.payment.productIdentifier);
+                LogBaker(@"- unsupported transaction type: %@", transaction.payment.productIdentifier);
                 break;
         }
     }
@@ -310,7 +336,7 @@
     } else if ([self productFor:productId]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"notification_issue_purchased" object:self userInfo:userInfo];
     } else {
-        NSLog(@"ERROR: Completed transaction for %@, which is not a Product ID this app recognises", productId);
+        LogBaker(@"ERROR: Completed transaction for %@, which is not a Product ID this app recognises", productId);
     }
 }
 
@@ -323,13 +349,13 @@
     } else if ([self productFor:productId]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"notification_issue_restored" object:self userInfo:userInfo];
     } else {
-        NSLog(@"ERROR: Trying to restore %@, which is not a Product ID this app recognises", productId);
+        LogBaker(@"ERROR: Trying to restore %@, which is not a Product ID this app recognises", productId);
         [[NSNotificationCenter defaultCenter] postNotificationName:@"notification_restored_issue_not_recognised" object:self userInfo:userInfo];
     }
 }
 
 -(void)failedTransaction:(SKPaymentTransaction *)transaction {
-    NSLog(@"Payment transaction failure: %@", transaction.error);
+    LogBaker(@"Payment transaction failure: %@", transaction.error);
 
     NSDictionary *userInfo = @{@"transaction": transaction};
     NSString *productId = transaction.payment.productIdentifier;
@@ -352,7 +378,7 @@
 }
 
 - (void)paymentQueue:(SKPaymentQueue *)queue restoreCompletedTransactionsFailedWithError:(NSError *)error {
-    NSLog(@"Transaction restore failure: %@", error);
+    LogBaker(@"Transaction restore failure: %@", error);
 
     NSDictionary *userInfo = @{@"error": error};
 

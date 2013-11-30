@@ -33,6 +33,9 @@
 #import "Utils.h"
 #import "GTMNSString+HTML.h"
 
+#import "Constants.h"
+
+
 @implementation PageTitleLabel
 
 - (id)initWithFile:(NSString *)path color:(UIColor *)color alpha:(float)alpha {
@@ -41,7 +44,7 @@
     if (error == nil) {
         return [self initWithFileContent:fileContent color:(UIColor *)color alpha:(float)alpha];
     } else {
-        NSLog(@"Error while loading %@ : %@ : Check that encoding is UTF8 for the file.", path, [error localizedDescription]);
+        LogBaker(@"Error while loading %@ : %@ : Check that encoding is UTF8 for the file.", path, [error localizedDescription]);
         return [super init];
     }
 }

@@ -13,6 +13,8 @@
 
 #include <sys/stat.h>
 
+#import "Constants.h"
+
 #define CHUNK 16384
 
 @interface SSZipArchive ()
@@ -163,7 +165,7 @@
 				[fileManager createDirectoryAtPath:[fullPath stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:directoryAttr error:&err];
 			}
 	        if (nil != err) {
-	            NSLog(@"[SSZipArchive] Error: %@", err.localizedDescription);
+	            LogBaker(@"[SSZipArchive] Error: %@", err.localizedDescription);
 	        }
 	
 	        if(!fileIsSymbolicLink)
@@ -199,7 +201,7 @@
 	                    if (attr) {
 	                        if ([fileManager setAttributes:attr ofItemAtPath:fullPath error:nil] == NO) {
 	                            // Can't set attributes 
-	                            NSLog(@"[SSZipArchive] Failed to set attributes - whilst setting modification date");
+	                            LogBaker(@"[SSZipArchive] Failed to set attributes - whilst setting modification date");
 	                        }
 	                    }
 	                }
@@ -219,7 +221,7 @@
                         // Update attributes
                         if ([fileManager setAttributes:attrs ofItemAtPath:fullPath error:nil] == NO) {
                             // Unable to set the permissions attribute
-                            NSLog(@"[SSZipArchive] Failed to set attributes - whilst setting permissions");
+                            LogBaker(@"[SSZipArchive] Failed to set attributes - whilst setting permissions");
                         }
                     }
 	            }
@@ -238,7 +240,7 @@
 	                [destinationPath appendString:@((const char*)buffer)];
 	            }
 	            
-	            //NSLog(@"Symlinking to: %@", destinationPath);
+	            //LogBaker(@"Symlinking to: %@", destinationPath);
 	            
 	            NSURL* destinationURL = [NSURL fileURLWithPath:destinationPath];
 	            
@@ -248,7 +250,7 @@
 	            
 	            if(symlinkError != nil)
 	            {
-	                NSLog(@"Failed to create symbolic link at \"%@\" to \"%@\". Error: %@", symlinkURL.absoluteString, destinationURL.absoluteString, symlinkError.localizedDescription);
+	                LogBaker(@"Failed to create symbolic link at \"%@\" to \"%@\". Error: %@", symlinkURL.absoluteString, destinationURL.absoluteString, symlinkError.localizedDescription);
 	            }
 	        }
 			
@@ -274,10 +276,10 @@
     NSError * err = nil;
     for (NSDictionary * d in directoriesModificationDates) {
         if (![[NSFileManager defaultManager] setAttributes:@{NSFileModificationDate: d[@"modDate"]} ofItemAtPath:d[@"path"] error:&err]) {
-            NSLog(@"[SSZipArchive] Set attributes failed for directory: %@.", d[@"path"]);
+            LogBaker(@"[SSZipArchive] Set attributes failed for directory: %@.", d[@"path"]);
         }
         if (err) {
-            NSLog(@"[SSZipArchive] Error setting directory file modification date attribute: %@",err.localizedDescription);
+            LogBaker(@"[SSZipArchive] Error setting directory file modification date attribute: %@",err.localizedDescription);
         }
     }
 	

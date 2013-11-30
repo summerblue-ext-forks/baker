@@ -32,6 +32,8 @@
 #import "JSONStatus.h"
 #import "Utils.h"
 
+#import "Constants.h"
+
 @implementation JSONStatus
 
 @synthesize path;
@@ -53,7 +55,7 @@
     NSError *error = nil;
     NSData* json = [NSData dataWithContentsOfFile:self.path options:0 error:&error];
     if (error) {
-        NSLog(@"[JSONStatus] Error when loading JSON status: %@", error);
+        LogBaker(@"[JSONStatus] Error when loading JSON status: %@", error);
     }
     NSDictionary* retv = [NSJSONSerialization JSONObjectWithData:json
                                                          options:0
@@ -72,7 +74,7 @@
     [json writeToFile:path options:NSDataWritingAtomic error:&error];
 
     if (error) {
-        NSLog(@"[JSONStatus] Error when saving JSON status: %@", error);
+        LogBaker(@"[JSONStatus] Error when saving JSON status: %@", error);
     }
 }
 
@@ -83,13 +85,13 @@
     if (![[NSFileManager defaultManager] fileExistsAtPath:dirPath]) {
         [[NSFileManager defaultManager] createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:nil error:&error];
         if (error) {
-            NSLog(@"[JSONStatus] Error when creating JSON status folder: %@", error);
+            LogBaker(@"[JSONStatus] Error when creating JSON status folder: %@", error);
         }
     }
 
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
         if (![[NSFileManager defaultManager] createFileAtPath:path contents:nil attributes:nil]) {
-            NSLog(@"[JSONStatus] JSON status file could not be created at %@", path);
+            LogBaker(@"[JSONStatus] JSON status file could not be created at %@", path);
         }
 
     }

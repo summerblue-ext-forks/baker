@@ -1,40 +1,24 @@
-//
-//  AppDelegate.m
-//  Baker
-//
-//  ==========================================================================================
-//
-//  Copyright (c) 2010-2013, Davide Casali, Marco Colombo, Alessandro Morandi
-//  All rights reserved.
-//
-//  Redistribution and use in source and binary forms, with or without modification, are
-//  permitted provided that the following conditions are met:
-//
-//  Redistributions of source code must retain the above copyright notice, this list of
-//  conditions and the following disclaimer.
-//  Redistributions in binary form must reproduce the above copyright notice, this list of
-//  conditions and the following disclaimer in the documentation and/or other materials
-//  provided with the distribution.
-//  Neither the name of the Baker Framework nor the names of its contributors may be used to
-//  endorse or promote products derived from this software without specific prior written
-//  permission.
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-//  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-//  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-//  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-//  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 
+
+/*
+ |--------------------------------------------------------------------------
+ | Application Bootstrap 文件
+ |--------------------------------------------------------------------------
+ |
+ | 程序开机启动, 进入后台, 返回前台, 内存警告, 注册消息通知等 App level 的事件在此文件
+ | 中处理.
+ |
+ */
+
+/** 常量定义 **/
 #import "Constants.h"
 #import "UIConstants.h"
+
 
 #import "AppDelegate.h"
 #import "UICustomNavigationController.h"
 #import "UICustomNavigationBar.h"
+
 #import "IssuesManager.h"
 #import "BakerAPI.h"
 #import "UIColor+Extensions.h"
@@ -49,9 +33,11 @@
 @synthesize rootViewController;
 @synthesize rootNavigationController;
 
+/**
+ *  initialize是在类或者其子类的第一个方法被调用前调用, 并且此方法只会被调用一次.
+ */
 + (void)initialize {
-    // Set user agent (the only problem is that we can't modify the User-Agent later in the program)
-    // We use a more browser-like User-Agent in order to allow browser detection scripts to run (like Tumult Hype).
+    // 设置 User Agent , 为啥要在这里设置, 必须是在 App 开始的时候设置才有用 见这里: http://stackoverflow.com/a/8666438/689832
     NSDictionary *userAgent = [[NSDictionary alloc] initWithObjectsAndKeys:@"Mozilla/5.0 (compatible; BakerFramework) AppleWebKit/533.00+ (KHTML, like Gecko) Mobile", @"UserAgent", nil];
     [[NSUserDefaults standardUserDefaults] registerDefaults:userAgent];
     [userAgent release];
@@ -68,27 +54,25 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-
-    #ifdef BAKER_NEWSSTAND
-
-    NSLog(@"====== Baker Newsstand Mode enabled ======");
     [BakerAPI generateUUIDOnce];
 
-    // Let the device know we want to handle Newsstand push notifications
+    LogBaker(@"注册 Newsstand Push Notification");
     [application registerForRemoteNotificationTypes:UIRemoteNotificationTypeNewsstandContentAvailability];
 
-    #ifdef DEBUG
-    // For debug only... so that you can download multiple issues per day during development
+    // 24 小时内, 后台下载只能发生一次. 开启 `NKDontThrottleNewsstandContentNotifications` 能解除此约束
+    #ifdef BAKERDEBUG
+    LogBaker(@"注册 NKDontThrottleNewsstandContentNotifications ");
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"NKDontThrottleNewsstandContentNotifications"];
     [[NSUserDefaults standardUserDefaults] synchronize];
     #endif
     
-    // Check if the app is runnig in response to a notification
+    // 检查是否是从 Push Notification 启动 App 的
     NSDictionary *payload = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
     if (payload) {
         NSDictionary *aps = payload[@"aps"];
-        if (aps && aps[@"content-available"]) {
-
+        if (aps && aps[@"content-available"])
+        {
+            LogBaker(@"远程 Push Notification 唤醒");
             __block UIBackgroundTaskIdentifier backgroundTask = [application beginBackgroundTaskWithExpirationHandler:^{
                 [application endBackgroundTask:backgroundTask];
                 backgroundTask = UIBackgroundTaskInvalid;
@@ -113,28 +97,20 @@
 
     self.rootViewController = [[[ShelfViewController alloc] init] autorelease];
 
-    #else
-
-    NSLog(@"====== Baker Standalone Mode enabled ======");
-    NSArray *books = [IssuesManager localBooksList];
-    if ([books count] == 1) {
-        self.rootViewController = [[[BakerViewController alloc] initWithBook:[[books objectAtIndex:0] bakerBook]] autorelease];
-    } else  {
-        self.rootViewController = [[[ShelfViewController alloc] initWithBooks:books] autorelease];
-    }
-
-    #endif
-
     self.rootNavigationController = [[[UICustomNavigationController alloc] initWithRootViewController:self.rootViewController] autorelease];
     UICustomNavigationBar *navigationBar = (UICustomNavigationBar *)self.rootNavigationController.navigationBar;
 
-    if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0")) {
+    // iOS7 适配
+    if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0"))
+    {
         // Background is 64px high: in iOS7, it will be used as the background for the status bar as well.
         [navigationBar setTintColor:[UIColor colorWithHexString:ISSUES_ACTION_BUTTON_BACKGROUND_COLOR]];
         [navigationBar setBarTintColor:[UIColor colorWithHexString:@"ffffff"]];
         [navigationBar setBackgroundImage:[UIImage imageNamed:@"navigation-bar-bg"] forBarMetrics:UIBarMetricsDefault];
         navigationBar.titleTextAttributes = @{UITextAttributeTextColor: [UIColor colorWithHexString:@"000000"]};
-    } else {
+    }
+    else
+    {
         // Background is 44px: in iOS6 and below, a higher background image would make the navigation bar
         // appear higher than it should be.
         [navigationBar setBackgroundImage:[UIImage imageNamed:@"navigation-bar-bg-ios6"] forBarMetrics:UIBarMetricsDefault];
@@ -148,21 +124,20 @@
     [self.window makeKeyAndVisible];
 
     
-    // ****** Analytics Setup
+    // -------- 初始化用户事件 (event) 统计, 注册 notification
     [BakerAnalyticsEvents sharedInstance]; // Initialization
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"BakerApplicationStart" object:self]; // -> Baker Analytics Event
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"BakerApplicationStart" object:self];
     
     return YES;
 }
 
-#ifdef BAKER_NEWSSTAND
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
 {
     NSString *apnsToken = [[deviceToken description] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"<>"]];
     apnsToken = [apnsToken stringByReplacingOccurrencesOfString:@" " withString:@""];
 
-    NSLog(@"[AppDelegate] My token (as NSData) is: %@", deviceToken);
-    NSLog(@"[AppDelegate] My token (as NSString) is: %@", apnsToken);
+    LogBaker(@"Divice Token 获取成功 (as NSData) is: %@", deviceToken);
+    LogBaker(@"Divice Token 获取成功 (as NSString) is: %@", apnsToken);
 
     [[NSUserDefaults standardUserDefaults] setObject:apnsToken forKey:@"apns_token"];
     [[NSUserDefaults standardUserDefaults] synchronize];
@@ -170,70 +145,86 @@
     BakerAPI *api = [BakerAPI sharedInstance];
     [api postAPNSToken:apnsToken];
 }
-#endif
 
 - (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
 {
-	NSLog(@"[AppDelegate] Push Notification - Device Token, review: %@", error);
+	LogBaker(@"Divice Token 获取失败, error: %@", error);
 }
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
-    #ifdef BAKER_NEWSSTAND
+    LogBaker(@"远程 Push Notification 接收成功: %@", userInfo);
     NSDictionary *aps = userInfo[@"aps"];
-    if (aps && aps[@"content-available"]) {
+    if (aps && aps[@"content-available"])
+    {
         [self applicationWillHandleNewsstandNotificationOfContent:userInfo[@"content-name"]];
     }
-    #endif
 }
+
+// iOS7 兼容
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))handler
 {
-    #ifdef BAKER_NEWSSTAND
     NSDictionary *aps = userInfo[@"aps"];
-    if (aps && aps[@"content-available"]) {
+    if (aps && aps[@"content-available"])
+    {
         [self applicationWillHandleNewsstandNotificationOfContent:userInfo[@"content-name"]];
     }
-    #endif
 }
+
+/**
+ *  接收并处理 Remote Pushnotification , 3 个地方调用
+ *
+ *
+ *  @param contentName payload[@"content-name"] 指定下载期刊的名字
+ */
 - (void)applicationWillHandleNewsstandNotificationOfContent:(NSString *)contentName
 {
-    #ifdef BAKER_NEWSSTAND
     IssuesManager *issuesManager = [IssuesManager sharedInstance];
     PurchasesManager *purchasesManager = [PurchasesManager sharedInstance];
     __block BakerIssue *targetIssue = nil;
 
-    [issuesManager refresh:^(BOOL status) {
-        if (contentName) {
+    [issuesManager refresh:^(BOOL status)
+    {
+        // 如果指定了下载期刊的话, 指定目标 issue
+        if (contentName)
+        {
             for (BakerIssue *issue in issuesManager.issues) {
                 if ([issue.ID isEqualToString:contentName]) {
                     targetIssue = issue;
                     break;
                 }
             }
-        } else {
+        }
+        else
+        {
+            // 指定为最新一期
             targetIssue = (issuesManager.issues)[0];
         }
 
-        [purchasesManager retrievePurchasesFor:[issuesManager productIDs] withCallback:^(NSDictionary *_purchases) {
-
+        [purchasesManager retrievePurchasesFor:[issuesManager productIDs] withCallback:^(NSDictionary *_purchases)
+        {
             NSString *targetStatus = [targetIssue getStatus];
-            NSLog(@"[AppDelegate] Push Notification - Target status: %@", targetStatus);
+            LogBaker(@"Remote Push Notification - 目标杂志 (targetStatus) 的状态为: %@", targetStatus);
 
-            if ([targetStatus isEqualToString:@"remote"] || [targetStatus isEqualToString:@"purchased"]) {
+            if ([targetStatus isEqualToString:@"remote"] || [targetStatus isEqualToString:@"purchased"])
+            {
+                LogBaker(@"Remote Push Notification - 开始下载...... <%@> ", targetIssue.ID);
                 [targetIssue download];
-            } else if ([targetStatus isEqualToString:@"purchasable"] || [targetStatus isEqualToString:@"unpriced"]) {
-                NSLog(@"[AppDelegate] Push Notification - You are not entitled to download issue '%@', issue not purchased yet", targetIssue.ID);
-            } else if (![targetStatus isEqualToString:@"remote"]) {
-                NSLog(@"[AppDelegate] Push Notification - Issue '%@' in download or already downloaded", targetIssue.ID);
+            }
+            else if ([targetStatus isEqualToString:@"purchasable"] || [targetStatus isEqualToString:@"unpriced"])
+            {
+                LogBaker(@"Remote Push Notification - 没有权限下载 <%@>, 需要购买先", targetIssue.ID);
+            }
+            else if (![targetStatus isEqualToString:@"remote"])
+            {
+                LogBaker(@"Remote Push Notification - 杂志 <%@> 正在下载中 或者 已经下载. ", targetIssue.ID);
             }
         }];
     }];
-    #endif
 }
 - (void)applicationWillResignActive:(UIApplication *)application
 {
-    // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-    // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+    // 保存 page 和 scrolling-y坐标
     [[NSNotificationCenter defaultCenter] postNotificationName:@"applicationWillResignActiveNotification" object:nil];
 }
 
@@ -242,30 +233,18 @@
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
 
-    #ifdef BAKER_NEWSSTAND
-    // Everything that happened while the application was opened can be considered as "seen"
+    // 清除 icon 上得角标, 用户关闭应用, 应该算查看过消息了
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
-    #endif
 }
 
-- (void)applicationWillEnterForeground:(UIApplication *)application
-{
-    // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-}
+- (void)applicationWillEnterForeground:(UIApplication *)application{}
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
-    // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-
-    #ifdef BAKER_NEWSSTAND
-    // Opening the application means all new items can be considered as "seen".
+    // 清除 icon 上得角标, 用户打开应用, 应该算查看过消息了
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
-    #endif
 }
 
-- (void)applicationWillTerminate:(UIApplication *)application
-{
-    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-}
+- (void)applicationWillTerminate:(UIApplication *)application{}
 
 @end

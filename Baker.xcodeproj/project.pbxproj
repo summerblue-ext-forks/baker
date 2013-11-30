@@ -55,6 +55,7 @@
 		BF0785EB1794AF4000EB988E /* info in Resources */ = {isa = PBXBuildFile; fileRef = BF0785EA1794AF4000EB988E /* info */; };
 		BF78D1B0180C8F070093DFBC /* BakerAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BF78D1AF180C8F070093DFBC /* BakerAssets.xcassets */; };
 		BFAB78D317B2A67E00E91ADE /* BakerAnalyticsEvents.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAB78D217B2A67E00E91ADE /* BakerAnalyticsEvents.m */; };
+		F38A180318496D4C00B38CB4 /* LogHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = F38A180218496D4C00B38CB4 /* LogHelper.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -146,6 +147,8 @@
 		BF78D1AF180C8F070093DFBC /* BakerAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = BakerAssets.xcassets; path = Baker/BakerAssets.xcassets; sourceTree = "<group>"; };
 		BFAB78D117B2A67E00E91ADE /* BakerAnalyticsEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BakerAnalyticsEvents.h; sourceTree = "<group>"; };
 		BFAB78D217B2A67E00E91ADE /* BakerAnalyticsEvents.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BakerAnalyticsEvents.m; sourceTree = "<group>"; };
+		F38A180118496D4C00B38CB4 /* LogHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogHelper.h; sourceTree = "<group>"; };
+		F38A180218496D4C00B38CB4 /* LogHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogHelper.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -193,6 +196,8 @@
 				ABADF3F816C7BAD900F52F3C /* NSURL+Extensions.m */,
 				AB67F5B816EE99B2005A04F6 /* Reachability.h */,
 				AB67F5B916EE99B2005A04F6 /* Reachability.m */,
+				F38A180118496D4C00B38CB4 /* LogHelper.h */,
+				F38A180218496D4C00B38CB4 /* LogHelper.m */,
 			);
 			path = lib;
 			sourceTree = "<group>";
@@ -459,6 +464,7 @@
 				AB2317D4169F808000BE3BE7 /* PurchasesManager.m in Sources */,
 				ABDC05AF16A4C42A00F6B63D /* JSONStatus.m in Sources */,
 				ABDC05B216A4CB3900F6B63D /* ShelfStatus.m in Sources */,
+				F38A180318496D4C00B38CB4 /* LogHelper.m in Sources */,
 				AB246A3116C5BC6E00715E25 /* NSMutableURLRequest+WebServiceClient.m in Sources */,
 				ABBFD8F216C6614300BA64A4 /* NSString+UUID.m in Sources */,
 				ABADF3F916C7BAD900F52F3C /* NSURL+Extensions.m in Sources */,
