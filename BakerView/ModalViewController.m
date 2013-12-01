@@ -1,62 +1,53 @@
-//
-//  ModalViewController.m
-//  Baker
-//
-//  ==========================================================================================
-//
-//  Copyright (c) 2010-2013, Davide Casali, Marco Colombo, Alessandro Morandi
-//  All rights reserved.
-//
-//  Redistribution and use in source and binary forms, with or without modification, are
-//  permitted provided that the following conditions are met:
-//
-//  Redistributions of source code must retain the above copyright notice, this list of
-//  conditions and the following disclaimer.
-//  Redistributions in binary form must reproduce the above copyright notice, this list of
-//  conditions and the following disclaimer in the documentation and/or other materials
-//  provided with the distribution.
-//  Neither the name of the Baker Framework nor the names of its contributors may be used to
-//  endorse or promote products derived from this software without specific prior written
-//  permission.
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-//  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-//  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-//  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-//  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//  ==========================================================================================
-//
-//  USAGE:
-//
-//  In the header (.h), add to @interface:
-//
-//      ModalViewController *modal;
-//
-//
-//  In the controller (.m) use this function:
-//
-//      - (void)loadModalWebView:(NSURL *) url {
-//          // initialize
-//          myModalViewController = [[[ModalViewController alloc] initWithUrl:url] autorelease];
-//          myModalViewController.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-//          myModalViewController.delegate = self;
-//
-//          // hide the IndexView before opening modal web view
-//          [self hideStatusBar];
-//
-//          // check if iOS4 or 5
-//          if ([self respondsToSelector:@selector(presentViewController:animated:completion:)])
-//              // iOS 5
-//              [self presentViewController:myModalViewController animated:YES completion:nil];
-//          else
-//              // iOS 4
-//              [self presentModalViewController:myModalViewController animated:YES];
-//      }
-//
+
+
+/*
+ |--------------------------------------------------------------------------
+ | 内建浏览器, 提高用户体验, 不会让用户感觉跳来跳去的.
+ |--------------------------------------------------------------------------
+ |
+ | 加载的是 hpub 包里面 index.html 文件.
+ | 用户在查看文章的时候双击就会调出此视图.
+ |
+ |
+ |
+ | 使用方法: 
+ |
+ |
+ |   In the header (.h), add to @interface:
+
+    ModalViewController *modal;
+
+
+ |  In the controller (.m) use this function:
+
+    - (void)loadModalWebView:(NSURL *) url {
+        // initialize
+        myModalViewController = [[[ModalViewController alloc] initWithUrl:url] autorelease];
+        myModalViewController.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+        myModalViewController.delegate = self;
+        
+        // hide the IndexView before opening modal web view
+        [self hideStatusBar];
+        
+        // check if iOS4 or 5
+        if ([self respondsToSelector:@selector(presentViewController:animated:completion:)])
+        {
+            // iOS 5
+            [self presentViewController:myModalViewController animated:YES completion:nil];
+        }
+        else
+        {
+            // iOS 4
+            [self presentModalViewController:myModalViewController animated:YES];
+        }
+        
+    }
+ 
+
+ |
+ */
+
+
 
 #import "ModalViewController.h"
 #import "UIColor+Extensions.h"

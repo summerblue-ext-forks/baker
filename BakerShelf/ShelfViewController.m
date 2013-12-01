@@ -88,9 +88,6 @@
     return self;
 }
 
-#pragma mark - Memory management
-
-
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
@@ -112,12 +109,11 @@
 
     [self willRotateToInterfaceOrientation:self.interfaceOrientation duration:0];
     [self.gridView reloadData];
-
-    #ifdef BAKER_NEWSSTAND
+    
     self.refreshButton = [[UIBarButtonItem alloc]
-                                       initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh
-                                       target:self
-                                       action:@selector(handleRefresh:)];
+                          initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh
+                          target:self
+                          action:@selector(handleRefresh:)];
 
     self.subscribeButton = [[UIBarButtonItem alloc]
                              initWithTitle: NSLocalizedString(@"SUBSCRIBE_BUTTON_TEXT", nil)
@@ -141,7 +137,6 @@
         [subscriptions addObject:FREE_SUBSCRIPTION_PRODUCT_ID];
     }
     [purchasesManager retrievePricesFor:subscriptions andEnableFailureNotifications:NO];
-    #endif
 }
 
 
@@ -156,13 +151,11 @@
         [controller refresh];
     }
 
-    #ifdef BAKER_NEWSSTAND
     NSMutableArray *buttonItems = [NSMutableArray arrayWithObject:self.refreshButton];
     if ([purchasesManager hasSubscriptions] || [issuesManager hasProductIDs]) {
         [buttonItems addObject:self.subscribeButton];
     }
     self.navigationItem.leftBarButtonItems = buttonItems;
-    #endif
     
     UIBarButtonItem *infoButton = [[UIBarButtonItem alloc]
                                     initWithTitle: NSLocalizedString(@"INFO_BUTTON_TEXT", nil)
@@ -218,6 +211,7 @@
         landscapePadding = width / 4 - cellWidth / 2;
     }
 
+    // 兼容
     if (size.height == 568) {
         image = [NSString stringWithFormat:@"%@-568h", image];
     } else {
@@ -276,7 +270,6 @@
     return [IssueViewController getIssueCellSize];
 }
 
-#ifdef BAKER_NEWSSTAND
 - (void)handleRefresh:(NSNotification *)notification {
     [self setrefreshButtonEnabled:NO];
 
@@ -466,7 +459,6 @@
 }
 
 - (void)handleMultipleRestores:(NSNotification *)notification {
-    #ifdef BAKER_NEWSSTAND
     if ([notRecognisedTransactions count] > 0) {
         NSSet *productIDs = [NSSet setWithArray:[[notRecognisedTransactions valueForKey:@"payment"] valueForKey:@"productIdentifier"]];
         NSString *productsList = [[productIDs allObjects] componentsJoinedByString:@", "];
@@ -480,7 +472,6 @@
         }
         [notRecognisedTransactions removeAllObjects];
     }
-    #endif
 
     [self handleRefresh:nil];
     [self.blockingProgressView dismissWithClickedButtonIndex:0 animated:YES];
@@ -579,8 +570,6 @@
                   buttonTitle:NSLocalizedString(@"PRODUCTS_REQUEST_FAILED_CLOSE", nil)];
 }
 
-#endif
-
 #pragma mark - Navigation management
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -592,7 +581,6 @@
     BakerBook *book = nil;
     NSString *status = [issue getStatus];
 
-    #ifdef BAKER_NEWSSTAND
     if ([status isEqual:@"opening"]) {
         book = [[BakerBook alloc] initWithBookPath:issue.path bundled:NO];
         if (book) {
@@ -609,12 +597,6 @@
                           buttonTitle:NSLocalizedString(@"ISSUE_OPENING_FAILED_CLOSE", nil)];
         }
     }
-    #else
-    if ([status isEqual:@"bundled"]) {
-        book = [issue bakerBook];
-        [self pushViewControllerWithBook:book];
-    }
-    #endif
 }
 - (void)handleReadIssue:(NSNotification *)notification
 {
@@ -666,16 +648,6 @@
 
 - (void)handleInfoButtonPressed:(id)sender {
     
-    // If the button is pressed when the info box is open, close it
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-    {
-        if ([infoPopover isPopoverVisible])
-        {
-            [infoPopover dismissPopoverAnimated:YES];
-            return;
-        }
-    }
-    
     // Prepare new view
     UIViewController *popoverContent = [[UIViewController alloc] init];
     UIWebView *popoverView = [[UIWebView alloc] init];
@@ -696,21 +668,15 @@
 #pragma mark - Helper methods
 
 - (void)addPurchaseObserver:(SEL)notificationSelector name:(NSString *)notificationName {
-    #ifdef BAKER_NEWSSTAND
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:notificationSelector
                                                  name:notificationName
                                                object:purchasesManager];
-    #endif
 }
 
 + (int)getBannerHeight
 {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-        return 240;
-    } else {
-        return 104;
-    }
+    return 104;
 }
 
 @end

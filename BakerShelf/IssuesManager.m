@@ -2,8 +2,8 @@
 
 /*
  |--------------------------------------------------------------------------
- | 书架管理器, 用来管理 Issue 的, IssuesManager 管理 Issue, 注意单复数的关系. 
- | 每一个 Issue 是一期杂志 .
+ | 书架管理器, 用来管理 BakerIssue 的, IssuesManager 管理 BakerIssue, 注意单复数的关系.
+ | 加载了 shelf.json 文件, 并更新本地的 NKLibrary 为线上最新的
  |--------------------------------------------------------------------------
  |
  */
@@ -213,7 +213,6 @@
 - (BakerIssue *)latestIssue {
     return issues[0];
 }
-
 
 + (NSArray *)localBooksList {
     NSMutableArray *booksList = [NSMutableArray array];

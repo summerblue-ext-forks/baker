@@ -1,42 +1,19 @@
-//
-//  IssueViewController.m
-//  Baker
-//
-//  ==========================================================================================
-//
-//  Copyright (c) 2010-2013, Davide Casali, Marco Colombo, Alessandro Morandi
-//  All rights reserved.
-//
-//  Redistribution and use in source and binary forms, with or without modification, are
-//  permitted provided that the following conditions are met:
-//
-//  Redistributions of source code must retain the above copyright notice, this list of
-//  conditions and the following disclaimer.
-//  Redistributions in binary form must reproduce the above copyright notice, this list of
-//  conditions and the following disclaimer in the documentation and/or other materials
-//  provided with the distribution.
-//  Neither the name of the Baker Framework nor the names of its contributors may be used to
-//  endorse or promote products derived from this software without specific prior written
-//  permission.
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-//  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-//  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-//  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-//  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+
+
+/*
+ |--------------------------------------------------------------------------
+ | 书架里的每一个杂志的 View 管理器, 一本杂志对应一个 IssueViewController.
+ | 视觉元素的构建, 相应用户事件, 用户点击下载, 用户点击 archive, 下载进度条...
+ |--------------------------------------------------------------------------
+ |
+ */
 
 #import <QuartzCore/QuartzCore.h>
 
 #import "IssueViewController.h"
 #import "SSZipArchive.h"
 #import "UIConstants.h"
-#ifdef BAKER_NEWSSTAND
 #import "PurchasesManager.h"
-#endif
 
 #import "UIColor+Extensions.h"
 #import "Utils.h"
@@ -162,10 +139,8 @@
     [archiveButton setTitle:NSLocalizedString(@"ARCHIVE_TEXT", nil) forState:UIControlStateNormal];
     [archiveButton setTitleColor:[UIColor colorWithHexString:ISSUES_ARCHIVE_BUTTON_COLOR] forState:UIControlStateNormal];
 
-    #ifdef BAKER_NEWSSTAND
     [archiveButton addTarget:self action:@selector(archiveButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:archiveButton];
-    #endif
 
     // SETUP DOWN/LOADING SPINNER AND LABEL
     self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
@@ -188,8 +163,7 @@
 
     [self.view addSubview:progressBar];
 
-    #ifdef BAKER_NEWSSTAND
-    // RESUME PENDING NEWSSTAND DOWNLOAD
+    // RESUME PENDING NEWSSTAND DOWNLOAD 断点续传被挂起的下载
     NKLibrary *nkLib = [NKLibrary sharedLibrary];
     for (NKAssetDownload *asset in [nkLib downloadingAssets]) {
         if ([asset.issue.name isEqualToString:self.issue.ID]) {
@@ -197,7 +171,6 @@
             [self.issue downloadWithAsset:asset];
         }
     }
-    #endif
 
     [self refreshContentWithCache:NO];
 }
@@ -320,7 +293,7 @@
 - (void)refresh:(NSString *)status
 {
     
-    LogBaker(@"杂志状态更新 --> 书架里每个 issue 的状态, 杂志名称 <%@> 状态从  <%@> 更新为 <%@>", self.issue.ID, self.currentStatus, status);
+    LogBaker(@"杂志 Cell 视觉状态更新 --> 杂志名称 <%@> 状态从  <%@> 更新为 <%@>", self.issue.ID, self.currentStatus, status);
     
     if ([status isEqualToString:@"remote"])
     {
@@ -466,35 +439,39 @@
     self.currentStatus = status;
 }
 
-#pragma mark - Memory management
-
-
 #pragma mark - Issue management
 
 - (void)actionButtonPressed:(UIButton *)sender
 {
     NSString *status = [self.issue getStatus];
-    if ([status isEqualToString:@"remote"] || [status isEqualToString:@"purchased"]) {
-    #ifdef BAKER_NEWSSTAND
+    if ([status isEqualToString:@"remote"] || [status isEqualToString:@"purchased"])
+    {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"BakerIssueDownload" object:self]; // -> Baker Analytics Event
         [self download];
-    #endif
-    } else if ([status isEqualToString:@"downloaded"] || [status isEqualToString:@"bundled"]) {
+    }
+    else if ([status isEqualToString:@"downloaded"] || [status isEqualToString:@"bundled"])
+    {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"BakerIssueOpen" object:self]; // -> Baker Analytics Event
         [self read];
-    } else if ([status isEqualToString:@"downloading"]) {
+    }
+    else if ([status isEqualToString:@"downloading"])
+    {
         // TODO: assuming it is supported by NewsstandKit, implement a "Cancel" operation
-    } else if ([status isEqualToString:@"purchasable"]) {
-    #ifdef BAKER_NEWSSTAND
+    }
+    else if ([status isEqualToString:@"purchasable"])
+    {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"BakerIssuePurchase" object:self]; // -> Baker Analytics Event
         [self buy];
-    #endif
     }
 }
-#ifdef BAKER_NEWSSTAND
-- (void)download {
+
+- (void)download
+{
     [self.issue download];
 }
+
+#pragma mark - 内购买管理
+
 - (void)buy {
     [self addPurchaseObserver:@selector(handleIssuePurchased:) name:@"notification_issue_purchased"];
     [self addPurchaseObserver:@selector(handleIssuePurchaseFailed:) name:@"notification_issue_purchase_failed"];
@@ -588,7 +565,7 @@
         [self refresh];
     }
 }
-#endif
+
 - (void)read
 {
     self.issue.transientStatus = BakerIssueTransientStatusOpening;
@@ -645,7 +622,6 @@
 
 #pragma mark - Newsstand archive management
 
-#ifdef BAKER_NEWSSTAND
 - (void)archiveButtonPressed:(UIButton *)sender
 {
     UIAlertView *updateAlert = [[UIAlertView alloc]
@@ -667,81 +643,58 @@
         NSString *name = nkIssue.name;
         NSDate *date = nkIssue.date;
 
+        // 先删除, 会清空 Cache
         [nkLib removeIssue:nkIssue];
 
+        // 重新加入
         nkIssue = [nkLib addIssueWithName:name date:date];
         self.issue.path = [[nkIssue contentURL] path];
 
         [self refresh];
     }
 }
-#endif
 
 #pragma mark - Helper methods
 
 - (void)addPurchaseObserver:(SEL)notificationSelector name:(NSString *)notificationName {
-    #ifdef BAKER_NEWSSTAND
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:notificationSelector
                                                  name:notificationName
                                                object:purchasesManager];
-    #endif
 }
 
 - (void)removePurchaseObserver:(NSString *)notificationName {
-    #ifdef BAKER_NEWSSTAND
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:notificationName
                                                   object:purchasesManager];
-    #endif
 }
 
 - (void)addIssueObserver:(SEL)notificationSelector name:(NSString *)notificationName {
-    #ifdef BAKER_NEWSSTAND
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:notificationSelector
                                                  name:notificationName
                                                object:nil];
-    #endif
 }
 
 + (UI)getIssueContentMeasures
 {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-        UI iPad = {
-            .cellPadding   = 30,
-            .thumbWidth    = 135,
-            .thumbHeight   = 180,
-            .contentOffset = 184
-        };
-        return iPad;
-    } else {
-        UI iPhone = {
-            .cellPadding   = 22,
-            .thumbWidth    = 87,
-            .thumbHeight   = 116,
-            .contentOffset = 128
-        };
-        return iPhone;
-    }
+    UI iPhone = {
+        .cellPadding   = 22,
+        .thumbWidth    = 87,
+        .thumbHeight   = 116,
+        .contentOffset = 128
+    };
+    return iPhone;
 }
 
 + (int)getIssueCellHeight
 {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-        return 240;
-    } else {
-        return 190;
-    }
+    return 240;
 }
 + (CGSize)getIssueCellSize
 {
     CGRect screenRect = [[UIScreen mainScreen] bounds];
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-        return CGSizeMake((screenRect.size.width - 10) / 2, [IssueViewController getIssueCellHeight]);
-    } else {
-        return CGSizeMake(screenRect.size.width - 10, [IssueViewController getIssueCellHeight]);
-    }
+    return CGSizeMake(screenRect.size.width - 10, [IssueViewController getIssueCellHeight]);
 }
 
 @end

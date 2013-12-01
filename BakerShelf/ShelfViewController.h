@@ -23,9 +23,7 @@
     NSMutableArray *notRecognisedTransactions;
     __weak UIPopoverController *infoPopover;
 
-    #ifdef BAKER_NEWSSTAND
     PurchasesManager *purchasesManager;
-    #endif
 }
 
 @property (copy, nonatomic) NSArray *issues;
@@ -50,12 +48,10 @@
 - (id)initWithBooks:(NSArray *)currentBooks;
 
 #pragma mark - Shelf data source
-#ifdef BAKER_NEWSSTAND
 - (void)handleRefresh:(NSNotification *)notification;
 
 #pragma mark - Store Kit
 - (void)handleSubscription:(NSNotification *)notification;
-#endif
 
 #pragma mark - Navigation management
 - (void)readIssue:(BakerIssue *)issue;

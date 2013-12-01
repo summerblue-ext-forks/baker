@@ -10,8 +10,8 @@
 
 
 /**
- *  一个更好的 LogBaker 替换, 去掉 LogBaker 前面的那些 "2013-11-30 08:09:58.653 Baker[70599:a0b]"...
- *  用法: 把它当 LogBaker 来用就行了.
+ *  一个更好的 NSLog 替换, 去掉 NSLog 前面的那些 "2013-11-30 08:09:58.653 Baker[70599:a0b]"...
+ *  用法: 把它当 NSLog 来用就行了.
  */
 
 void BetterNSLog (NSString *format, ...) {

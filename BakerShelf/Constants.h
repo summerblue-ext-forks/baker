@@ -1,7 +1,5 @@
 
 
-#import "LogHelper.h"
-
 /*
  |--------------------------------------------------------------------------
  | 通用常量定义
@@ -9,6 +7,7 @@
  |
  */
 
+#import "LogHelper.h"
 
 #ifndef Baker_Constants_h
 #define Baker_Constants_h

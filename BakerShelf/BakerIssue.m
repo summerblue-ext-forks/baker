@@ -3,6 +3,7 @@
 /*
  |--------------------------------------------------------------------------
  | 每一个 Issue 是一期杂志 .
+ | Issue 的下载, 解压, 获取状态, 都在这里
  |--------------------------------------------------------------------------
  |
  */
@@ -182,7 +183,7 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:notificationDownloadStartedName object:self userInfo:nil];
 }
 
-#pragma mark - Newsstand download management
+#pragma mark - NSURLConnection 的 Delegate,  Newsstand download management
 
 /**
  *  下载进行中, 发送消息, 更新进度条, 来自 NSURLConnection 的 Delegate

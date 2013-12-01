@@ -3,6 +3,7 @@
 /*
  |--------------------------------------------------------------------------
  | 每一个 Issue 是一期杂志 .
+ | Issue 的下载, 解压, 获取状态, 都在这里
  |--------------------------------------------------------------------------
  |
  */
@@ -61,10 +62,8 @@ typedef enum transientStates {
 -(void)getCoverWithCache:(bool)cache andBlock:(void(^)(UIImage *img))completionBlock;
 -(NSString *)getStatus;
 
-#ifdef BAKER_NEWSSTAND
 -(id)initWithIssueData:(NSDictionary *)issueData;
 -(void)download;
 -(void)downloadWithAsset:(NKAssetDownload *)asset;
-#endif
 
 @end
