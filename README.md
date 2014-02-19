@@ -6,11 +6,8 @@ Project Baker
 * 把语法转换为新的 objective-c 语法;
 * 转换为 ARC;
 * 增加了文件注释. 
-
-### TODOS
-
 * 去除 In App Purchase 的逻辑;
-* 去除作用不到的 hpub 属性;
+* 去除多余的 hpub 属性;
 * 进行集成. 
 
 
